@@ -106,7 +106,7 @@ update do
   tick += 1
 
   unless piece_landed
-    if (tick % wait).zero?
+  if (tick % wait).zero?
     key_in = false
     delete_from_field.call
     tt = false
@@ -120,17 +120,17 @@ update do
     piece_landed = tt
   end
   else
-    if check_delete = field.index{ |row| row.none? &:zero? }
-      key_in = false
-      field.delete_at check_delete
-      field.unshift Array.new width, 0
-    else
-      wait = 18
-      piece_landed = false
-      new_tetromino.call
-      fail "game over" if collision.call
-      write_to_field.call
-      key_in = true
+      if check_delete = field.index{ |row| row.none? &:zero? }
+        key_in = false
+        field.delete_at check_delete
+        field.unshift Array.new width, 0
+      else
+        wait = 18
+        piece_landed = false
+        new_tetromino.call
+        fail "game over" if collision.call
+        write_to_field.call
+        key_in = true
     end
   end
 
