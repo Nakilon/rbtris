@@ -88,8 +88,6 @@ end
 
 wait = 18
 
-key_in = true
-
 new_tetromino = lambda do
   x, y, dir = 3, 0, 0
   num = rand 1..pats.size
@@ -105,7 +103,6 @@ update do
   tick += 1
 
   if (tick % wait).zero?
-    key_in = false
     delete_from_field.call
     tt = false
     y += 1
@@ -114,7 +111,6 @@ update do
       tt = true
     end
     write_to_field.call
-    key_in = true
     if tt
       a, b = field.partition{ |row| row.none? &:zero? }
       field = a.map{ Array.new width, 0 } + b
@@ -137,7 +133,7 @@ move = lambda do |dx|
 end
 
 on :key_down do |event|
-  next if key_lock || !key_in
+  next if key_lock
   key_lock = true
   case event.key
   when "left"  then move.call -1
