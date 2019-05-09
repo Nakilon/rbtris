@@ -1,6 +1,4 @@
-require "ruby2d"
 
-wait = 18
 
 class Tetromino
   attr_accessor :x, :y
@@ -44,52 +42,41 @@ class Tetromino
 end
 
 
-piece = nil
-field = nil
-
+piece = Tetromino.new
 width, height = 10, 20
-
-collision = lambda do
-  x, y = piece.x, piece.y
-  return true if y + piece.height > height || x + piece.width > width
-  piece.get.map.each_with_index.any? do |row, dy|
-    row.map.each_with_index.any? do |a, dx|
-      a.nonzero? && field[y + dy][x + dx].nonzero?
-    end
-  end
-end
-
-
-block_side = 25
-
-block_margin = 1
-margin = 30
-s = block_margin * 2 + block_side
-w = margin * 2 + s * width
-h = margin * 2 + s * height
-
-Window.set width: w, height: h, title: "rbTris"
-Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "#ABF8FC"
-Rectangle.new x: margin, y: margin, width: w - 2 * margin, height: h - 2 * margin, color: "black"
-
 field = Array.new(height){ Array.new(width){ 0 } }
 
 write_to_field = lambda do
   x, y = piece.x, piece.y
   piece.get.map.with_index do |row, dy|
     row.each_index do |dx|
-      field[y + dy][x + dx] = row[dx] unless row[dx].zero?
+      next if row[dx].zero?
+      field[y + dy][x + dx] = row[dx]
+    end
+  end
+end
+write_to_field.call
+delete_from_field = lambda do
+  x, y = piece.x, piece.y
+  piece.get.map.with_index do |row, dy|
+    row.each_index do |dx|
+      next if row[dx].zero?
+      field[y + dy][x + dx] = 0
     end
   end
 end
 
-
-birth = lambda do
-  piece = Tetromino.new
-  fail "game over" if collision.call
-  write_to_field.call
-end
+require "ruby2d"
 render = lambda do
+  block_margin = 1
+  block_side = 25
+  s = block_margin * 2 + block_side
+  margin = 30
+  w = margin * 2 + s * width
+  h = margin * 2 + s * height
+  Window.set width: w, height: h, title: "rbTris"
+  Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "#ABF8FC"
+  Rectangle.new x: margin, y: margin, width: w - 2 * margin, height: h - 2 * margin, color: "black"
   blocks = Array.new(height) do |y|
     Array.new(width) do |x|
       Square.new x: margin + block_margin + s * x,
@@ -106,22 +93,24 @@ render = lambda do
     end
   end
 end.call
-
-birth.call
 render.call
+
+collision = lambda do
+  return true if piece.y + piece.height > height
+  return true if piece.x + piece.width > width
+  piece.get.map.each_with_index.any? do |row, dy|
+    row.map.each_with_index.any? do |a, dx|
+      a.nonzero? && field[piece.y + dy][piece.x + dx].nonzero?
+    end
+  end
+end
+
+
+wait = 18
 
 down_flag = false
 key_in = true
 key_lock = false
-
-delete_from_field = lambda do
-  x, y = piece.x, piece.y
-  piece.get.map.with_index do |row, dy|
-    row.each_index do |dx|
-      field[y + dy][x + dx] = 0 unless row[dx].zero?
-    end
-  end
-end
 
 check_delete = false
 tick = 1
@@ -152,7 +141,9 @@ update do
     unless check_delete
       wait = 18
       down_flag = false
-      birth.call
+      piece = Tetromino.new
+      fail "game over" if collision.call
+      write_to_field.call
       key_in = true
     end
   end
