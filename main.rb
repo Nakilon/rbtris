@@ -51,27 +51,6 @@ end
 key_in = nil
 blocks = nil
 field = nil
-init = lambda do
-    block_margin = 1
-    margin = 30
-    s = block_margin * 2 + block_side
-    w = margin * 2 + s * width
-    h = margin * 2 + s * height
-    Window.set width: w, height: h, title: "rbTris"
-    Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "#ABF8FC"
-    Rectangle.new x: margin, y: margin, width: w - 2 * margin, height: h - 2 * margin, color: "black"
-
-    blocks = Array.new(height) do |y|
-      Array.new(width) do |x|
-        Square.new x: margin + block_margin + s * x,
-                   y: margin + block_margin + s * y,
-                   size: block_side, color: "red", z: 10
-      end
-    end
-    field = Array.new(height){ Array.new(width){ 0 } }
-
-    key_in = true
-  end
 
 render = lambda do
     height.times do |y|
@@ -109,20 +88,6 @@ delete_from_field = lambda do
     end
   end
 
-one_down = lambda do
-    key_in = false
-    delete_from_field.call
-    t = false
-    piece.y += 1
-    if collision.call
-      piece.y -= 1
-      t = true
-    end
-    write_to_field.call
-    key_in = true
-    t
-  end
-
 collision = lambda do
     x, y = piece.x, piece.y
     return true if y + piece.height > height || x + piece.width > width
@@ -133,16 +98,6 @@ collision = lambda do
     end
   end
 
-delete_blocks = lambda do
-    height.times.any? do |y|
-      next unless field[y].all? &:nonzero?
-      key_in = false
-      field.delete_at y
-      field.unshift Array.new width, 0
-      true
-    end
-  end
-
 move = lambda do |dx|
     delete_from_field.call
     piece.x += dx
@@ -150,15 +105,29 @@ move = lambda do |dx|
     write_to_field.call
   end
 
-rotate = lambda do
-    delete_from_field.call
-    piece.rotate 1
-    piece.rotate -1 if collision.call
-    write_to_field.call
+
+block_margin = 1
+margin = 30
+s = block_margin * 2 + block_side
+w = margin * 2 + s * width
+h = margin * 2 + s * height
+Window.set width: w, height: h, title: "rbTris"
+
+Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "#ABF8FC"
+Rectangle.new x: margin, y: margin, width: w - 2 * margin, height: h - 2 * margin, color: "black"
+
+blocks = Array.new(height) do |y|
+  Array.new(width) do |x|
+    Square.new x: margin + block_margin + s * x,
+               y: margin + block_margin + s * y,
+               size: block_side, color: "red", z: 10
   end
+end
+field = Array.new(height){ Array.new(width){ 0 } }
+
+key_in = true
 
 
-init.call
 t = 1
 check_delete = false
 down_flag = false
@@ -170,7 +139,11 @@ on :key_down do |event|
   case event.key
   when "left"  then move.call -1
   when "right" then move.call 1
-  when "up"    then rotate.call
+  when "up"    then
+    delete_from_field.call
+    piece.rotate 1
+    piece.rotate -1 if collision.call
+    write_to_field.call
   when "down"  then wait = 2
   end
   key_lock = false
@@ -181,10 +154,28 @@ render.call
 
 update do
   key_lock = true
-  down_flag = one_down.call if (t % wait).zero? && !down_flag
+  if (t % wait).zero? && !down_flag
+    key_in = false
+    delete_from_field.call
+    tt = false
+    piece.y += 1
+    if collision.call
+      piece.y -= 1
+      tt = true
+    end
+    write_to_field.call
+    key_in = true
+    down_flag = tt
+  end
 
   if (check_delete || down_flag) && (t % 30).zero?
-    check_delete = delete_blocks.call
+    check_delete = height.times.any? do |y|
+      next unless field[y].all? &:nonzero?
+      key_in = false
+      field.delete_at y
+      field.unshift Array.new width, 0
+      true
+    end
     unless check_delete
       wait = 18
       down_flag = false

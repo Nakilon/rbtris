@@ -7,3 +7,5 @@ TODO
 * canonical shapes rotation and center
 * ability of a piece to shift itself by rotation bouncing the walls
 * scoreboard
+* not full going DOWN
+* ability to hold UP just for fun
