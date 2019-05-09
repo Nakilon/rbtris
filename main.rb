@@ -92,7 +92,6 @@ down_flag = false
 key_in = true
 
 check_delete = false
-tick = 1
 
 new_tetromino = lambda do
   x, y, dir = 3, 0, 0
@@ -103,8 +102,11 @@ new_tetromino.call
 write_to_field.call
 render.call
 key_lock = false
+tick = 0
 update do
   key_lock = true
+  tick += 1
+
   if (tick % wait).zero? && !down_flag
     key_in = false
     delete_from_field.call
@@ -119,15 +121,12 @@ update do
     down_flag = tt
   end
 
-  if (check_delete || down_flag) && (tick % 30).zero?
-    check_delete = height.times.any? do |y|
-      next unless field[y].all? &:nonzero?
+  if check_delete || down_flag
+    if check_delete = field.index{ |row| row.none? &:zero? }
       key_in = false
-      field.delete_at y
+      field.delete_at check_delete
       field.unshift Array.new width, 0
-      true
-    end
-    unless check_delete
+    else
       wait = 18
       down_flag = false
       new_tetromino.call
@@ -137,7 +136,6 @@ update do
     end
   end
 
-  tick += 1
   render.call
   key_lock = false
 end
