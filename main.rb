@@ -1,64 +1,45 @@
+# frozen_string_literal: true
 
 
-class Tetromino
-  attr_accessor :x, :y
+pats = [
+  %w{ 1111    },
+  %w{ 11  11  },
+  %w{ 011 110 },
+  %w{ 110 011 },
+  %w{ 100 111 },
+  %w{ 001 111 },
+  %w{ 010 111 },
+]
+num = dir = nil
 
-  def initialize
-    @pat = Array.new 4    # precalculated rotations
-    pats = [
-      %w{ 1111    },
-      %w{ 11  11  },
-      %w{ 011 110 },
-      %w{ 110 011 },
-      %w{ 100 111 },
-      %w{ 001 111 },
-      %w{ 010 111 },
-    ]
-    @num = rand 1..pats.size
-    @pat[0] = pats.map{ |pt| pt.map{ |st| st.chars.map(&:to_i)} }[@num - 1]
-    3.times do |i|
-      @pat[i + 1] = @pat[i].reverse.transpose
-    end
-
-    @dir = 0
-    @x, @y = 3, 0
+rotated = lambda do
+  pat = pats[num - 1].map{ |st| st.chars.map &:to_i }
+  dir.times do
+    pat = pat.reverse.transpose
   end
+  pat
+end
 
-  def rotate n
-    @dir = (@dir + n) % 4
-  end
-
-  def get
-    @pat[@dir].map{ |row| row.map{ |i| i * @num } }
-  end
-
-  def width
-    @pat[@dir].first.size
-  end
-
-  def height
-    @pat[@dir].size
-  end
+get = lambda do
+  rotated.call.map{ |row| row.map{ |i| i * num } }
 end
 
 
-piece = Tetromino.new
+x = y = nil
+
 width, height = 10, 20
 field = Array.new(height){ Array.new(width){ 0 } }
 
 write_to_field = lambda do
-  x, y = piece.x, piece.y
-  piece.get.map.with_index do |row, dy|
+  get.call.map.with_index do |row, dy|
     row.each_index do |dx|
       next if row[dx].zero?
       field[y + dy][x + dx] = row[dx]
     end
   end
 end
-write_to_field.call
 delete_from_field = lambda do
-  x, y = piece.x, piece.y
-  piece.get.map.with_index do |row, dy|
+  get.call.map.with_index do |row, dy|
     row.each_index do |dx|
       next if row[dx].zero?
       field[y + dy][x + dx] = 0
@@ -93,14 +74,13 @@ render = lambda do
     end
   end
 end.call
-render.call
 
 collision = lambda do
-  return true if piece.y + piece.height > height
-  return true if piece.x + piece.width > width
-  piece.get.map.each_with_index.any? do |row, dy|
+  return true if y + rotated.call.      size > height
+  return true if x + rotated.call.first.size > width
+  get.call.map.each_with_index.any? do |row, dy|
     row.map.each_with_index.any? do |a, dx|
-      a.nonzero? && field[piece.y + dy][piece.x + dx].nonzero?
+      a.nonzero? && field[y + dy][x + dx].nonzero?
     end
   end
 end
@@ -110,19 +90,28 @@ wait = 18
 
 down_flag = false
 key_in = true
-key_lock = false
 
 check_delete = false
 tick = 1
+
+new_tetromino = lambda do
+  x, y, dir = 3, 0, 0
+  num = rand 1..pats.size
+end
+new_tetromino.call
+
+write_to_field.call
+render.call
+key_lock = false
 update do
   key_lock = true
   if (tick % wait).zero? && !down_flag
     key_in = false
     delete_from_field.call
     tt = false
-    piece.y += 1
+    y += 1
     if collision.call
-      piece.y -= 1
+      y -= 1
       tt = true
     end
     write_to_field.call
@@ -141,7 +130,7 @@ update do
     unless check_delete
       wait = 18
       down_flag = false
-      piece = Tetromino.new
+      new_tetromino.call
       fail "game over" if collision.call
       write_to_field.call
       key_in = true
@@ -155,8 +144,8 @@ end
 
 move = lambda do |dx|
   delete_from_field.call
-  piece.x += dx
-  piece.x -= dx if piece.x < 0 || collision.call
+  x += dx
+  x -= dx if x < 0 || collision.call
   write_to_field.call
 end
 
@@ -168,8 +157,11 @@ on :key_down do |event|
   when "right" then move.call 1
   when "up"    then
     delete_from_field.call
-    piece.rotate 1
-    piece.rotate -1 if collision.call
+
+    old = dir
+    dir = (dir + 1) % 4
+    dir = old if collision.call
+
     write_to_field.call
   when "down"  then wait = 2
   end
