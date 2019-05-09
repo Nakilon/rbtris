@@ -88,7 +88,6 @@ end
 
 wait = 18
 
-piece_landed = false
 key_in = true
 
 new_tetromino = lambda do
@@ -105,7 +104,6 @@ update do
   key_lock = true
   tick += 1
 
-  unless piece_landed
   if (tick % wait).zero?
     key_in = false
     delete_from_field.call
@@ -117,20 +115,13 @@ update do
     end
     write_to_field.call
     key_in = true
-    piece_landed = tt
-  end
-  else
-      if check_delete = field.index{ |row| row.none? &:zero? }
-        key_in = false
-        field.delete_at check_delete
-        field.unshift Array.new width, 0
-      else
+    if tt
+      a, b = field.partition{ |row| row.none? &:zero? }
+      field = a.map{ Array.new width, 0 } + b
         wait = 18
-        piece_landed = false
         new_tetromino.call
         fail "game over" if collision.call
         write_to_field.call
-        key_in = true
     end
   end
 
@@ -146,7 +137,7 @@ move = lambda do |dx|
 end
 
 on :key_down do |event|
-  next if key_lock || !key_in || piece_landed
+  next if key_lock || !key_in
   key_lock = true
   case event.key
   when "left"  then move.call -1
