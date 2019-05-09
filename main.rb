@@ -44,49 +44,10 @@ class Tetromino
 end
 
 
-width, height = 10, 20
-
-block_side = 25
-
-key_in = nil
-blocks = nil
+piece = nil
 field = nil
 
-render = lambda do
-  height.times do |y|
-    width.times do |x|
-      blocks[y][x].color = %w{ #158FAC #F1F101 #2FFF43 #DF0F0F #5858FF #FFB950 #FF98F3 }[field[y][x] - 1]
-      field[y][x].zero? ? blocks[y][x].remove : blocks[y][x].add
-    end
-  end
-end
-
-piece = nil
-collision = nil
-write_to_field = nil
-birth = lambda do
-  piece = Tetromino.new
-  fail "game over" if collision.call
-  write_to_field.call
-end
-
-write_to_field = lambda do
-  x, y = piece.x, piece.y
-  piece.get.map.with_index do |row, dy|
-    row.each_index do |dx|
-      field[y + dy][x + dx] = row[dx] unless row[dx].zero?
-    end
-  end
-end
-
-delete_from_field = lambda do
-  x, y = piece.x, piece.y
-  piece.get.map.with_index do |row, dy|
-    row.each_index do |dx|
-      field[y + dy][x + dx] = 0 unless row[dx].zero?
-    end
-  end
-end
+width, height = 10, 20
 
 collision = lambda do
   x, y = piece.x, piece.y
@@ -98,63 +59,75 @@ collision = lambda do
   end
 end
 
-move = lambda do |dx|
-  delete_from_field.call
-  piece.x += dx
-  piece.x -= dx if piece.x < 0 || collision.call
-  write_to_field.call
-end
 
+block_side = 25
 
 block_margin = 1
 margin = 30
 s = block_margin * 2 + block_side
 w = margin * 2 + s * width
 h = margin * 2 + s * height
-Window.set width: w, height: h, title: "rbTris"
 
+Window.set width: w, height: h, title: "rbTris"
 Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "#ABF8FC"
 Rectangle.new x: margin, y: margin, width: w - 2 * margin, height: h - 2 * margin, color: "black"
 
-blocks = Array.new(height) do |y|
-  Array.new(width) do |x|
-    Square.new x: margin + block_margin + s * x,
-               y: margin + block_margin + s * y,
-               size: block_side, color: "red", z: 10
-  end
-end
 field = Array.new(height){ Array.new(width){ 0 } }
 
-key_in = true
-
-
-t = 1
-check_delete = false
-down_flag = false
-key_lock = false
-
-on :key_down do |event|
-  next if key_lock || !key_in || down_flag
-  key_lock = true
-  case event.key
-  when "left"  then move.call -1
-  when "right" then move.call 1
-  when "up"    then
-    delete_from_field.call
-    piece.rotate 1
-    piece.rotate -1 if collision.call
-    write_to_field.call
-  when "down"  then wait = 2
+write_to_field = lambda do
+  x, y = piece.x, piece.y
+  piece.get.map.with_index do |row, dy|
+    row.each_index do |dx|
+      field[y + dy][x + dx] = row[dx] unless row[dx].zero?
+    end
   end
-  key_lock = false
 end
+
+
+birth = lambda do
+  piece = Tetromino.new
+  fail "game over" if collision.call
+  write_to_field.call
+end
+render = lambda do
+  blocks = Array.new(height) do |y|
+    Array.new(width) do |x|
+      Square.new x: margin + block_margin + s * x,
+                 y: margin + block_margin + s * y,
+                 size: block_side, color: "red", z: 10
+    end
+  end
+  lambda do
+    height.times do |y|
+      width.times do |x|
+        blocks[y][x].color = %w{ #158FAC #F1F101 #2FFF43 #DF0F0F #5858FF #FFB950 #FF98F3 }[field[y][x] - 1]
+        field[y][x].zero? ? blocks[y][x].remove : blocks[y][x].add
+      end
+    end
+  end
+end.call
 
 birth.call
 render.call
 
+down_flag = false
+key_in = true
+key_lock = false
+
+delete_from_field = lambda do
+  x, y = piece.x, piece.y
+  piece.get.map.with_index do |row, dy|
+    row.each_index do |dx|
+      field[y + dy][x + dx] = 0 unless row[dx].zero?
+    end
+  end
+end
+
+check_delete = false
+tick = 1
 update do
   key_lock = true
-  if (t % wait).zero? && !down_flag
+  if (tick % wait).zero? && !down_flag
     key_in = false
     delete_from_field.call
     tt = false
@@ -168,7 +141,7 @@ update do
     down_flag = tt
   end
 
-  if (check_delete || down_flag) && (t % 30).zero?
+  if (check_delete || down_flag) && (tick % 30).zero?
     check_delete = height.times.any? do |y|
       next unless field[y].all? &:nonzero?
       key_in = false
@@ -184,8 +157,31 @@ update do
     end
   end
 
-  t += 1
+  tick += 1
   render.call
+  key_lock = false
+end
+
+move = lambda do |dx|
+  delete_from_field.call
+  piece.x += dx
+  piece.x -= dx if piece.x < 0 || collision.call
+  write_to_field.call
+end
+
+on :key_down do |event|
+  next if key_lock || !key_in || down_flag
+  key_lock = true
+  case event.key
+  when "left"  then move.call -1
+  when "right" then move.call 1
+  when "up"    then
+    delete_from_field.call
+    piece.rotate 1
+    piece.rotate -1 if collision.call
+    write_to_field.call
+  when "down"  then wait = 2
+  end
   key_lock = false
 end
 
