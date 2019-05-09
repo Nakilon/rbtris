@@ -44,66 +44,66 @@ class Tetromino
 end
 
 
-  width, height = 10, 20
+width, height = 10, 20
 
-  block_side = 25
+block_side = 25
 
 key_in = nil
 blocks = nil
 field = nil
 
 render = lambda do
-    height.times do |y|
-      width.times do |x|
-        blocks[y][x].color = %w{ #158FAC #F1F101 #2FFF43 #DF0F0F #5858FF #FFB950 #FF98F3 }[field[y][x] - 1]
-        field[y][x].zero? ? blocks[y][x].remove : blocks[y][x].add
-      end
+  height.times do |y|
+    width.times do |x|
+      blocks[y][x].color = %w{ #158FAC #F1F101 #2FFF43 #DF0F0F #5858FF #FFB950 #FF98F3 }[field[y][x] - 1]
+      field[y][x].zero? ? blocks[y][x].remove : blocks[y][x].add
     end
   end
+end
 
 piece = nil
 collision = nil
 write_to_field = nil
 birth = lambda do
-    piece = Tetromino.new
-    fail "game over" if collision.call
-    write_to_field.call
-  end
+  piece = Tetromino.new
+  fail "game over" if collision.call
+  write_to_field.call
+end
 
 write_to_field = lambda do
-    x, y = piece.x, piece.y
-    piece.get.map.with_index do |row, dy|
-      row.each_index do |dx|
-        field[y + dy][x + dx] = row[dx] unless row[dx].zero?
-      end
+  x, y = piece.x, piece.y
+  piece.get.map.with_index do |row, dy|
+    row.each_index do |dx|
+      field[y + dy][x + dx] = row[dx] unless row[dx].zero?
     end
   end
+end
 
 delete_from_field = lambda do
-    x, y = piece.x, piece.y
-    piece.get.map.with_index do |row, dy|
-      row.each_index do |dx|
-        field[y + dy][x + dx] = 0 unless row[dx].zero?
-      end
+  x, y = piece.x, piece.y
+  piece.get.map.with_index do |row, dy|
+    row.each_index do |dx|
+      field[y + dy][x + dx] = 0 unless row[dx].zero?
     end
   end
+end
 
 collision = lambda do
-    x, y = piece.x, piece.y
-    return true if y + piece.height > height || x + piece.width > width
-    piece.get.map.each_with_index.any? do |row, dy|
-      row.map.each_with_index.any? do |a, dx|
-        a.nonzero? && field[y + dy][x + dx].nonzero?
-      end
+  x, y = piece.x, piece.y
+  return true if y + piece.height > height || x + piece.width > width
+  piece.get.map.each_with_index.any? do |row, dy|
+    row.map.each_with_index.any? do |a, dx|
+      a.nonzero? && field[y + dy][x + dx].nonzero?
     end
   end
+end
 
 move = lambda do |dx|
-    delete_from_field.call
-    piece.x += dx
-    piece.x -= dx if piece.x < 0 || collision.call
-    write_to_field.call
-  end
+  delete_from_field.call
+  piece.x += dx
+  piece.x -= dx if piece.x < 0 || collision.call
+  write_to_field.call
+end
 
 
 block_margin = 1
