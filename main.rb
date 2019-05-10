@@ -87,18 +87,18 @@ update do
     if current >= prev + row_time
       prev += row_time
       if figure
-      y += 1
-      unless collision.call
-        puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
-        draw_state.call
-      else
-        y -= 1
-        draw.call true
-        a, b = field.partition &:all?
-        field = a.map{ Array.new width } + b
-        render.call
-        figure = nil
-      end
+        y += 1
+        unless collision.call
+          puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
+          draw_state.call
+        else
+          y -= 1
+          draw.call true
+          a, b = field.partition &:all?
+          field = a.map{ Array.new width } + b
+          render.call
+          figure = nil
+        end
       end
     end
 
