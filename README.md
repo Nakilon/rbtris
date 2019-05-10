@@ -18,4 +18,4 @@ TODO
 * [ ] option to restart
 * [ ] cheat for testing purposes
 * [ ] canonical increasing speed
-* [ ] holding LEFT and RIGHT
+* [x] holding LEFT and RIGHT

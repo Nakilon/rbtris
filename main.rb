@@ -83,16 +83,13 @@ update do
   current = Time.now
   first_time ||= current
   semaphore.synchronize do
-    if !prev || current >= prev + row_time
-      puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
-      if prev
-        prev += row_time
-      else
-        prev = current
-      end
-    if figure# && (Window.frames.round % 5).zero?
+    prev ||= current - row_time
+    if current >= prev + row_time
+      prev += row_time
+      if figure
       y += 1
       unless collision.call
+        puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
         draw_state.call
       else
         y -= 1
@@ -102,7 +99,7 @@ update do
         render.call
         figure = nil
       end
-    end
+      end
     end
 
     unless figure
@@ -127,45 +124,56 @@ end
 
 holding = Hash.new
 
+try_left = lambda do
+  x -= 1
+  if x < 0 || collision.call
+    x += 1
+  else
+    draw_state.call
+  end
+end
+try_right = lambda do
+  x += 1
+  if collision.call
+    x -= 1
+  else
+    draw_state.call
+  end
+end
+try_up = lambda do
+  figure = figure.reverse.transpose
+  if collision.call
+    figure = figure.transpose.reverse
+  else
+    draw_state.call
+  end
+end
+
 on :key_down do |event|
+  holding[event.key] = Time.now
   semaphore.synchronize do
     case event.key
     when "left"
-      x -= 1
-      if x < 0 || collision.call
-        x += 1
-      else
-        draw_state.call
-      end
+      try_left.call
     when "right"
-      x += 1
-      if collision.call
-        x -= 1
-      else
-        draw_state.call
-      end
+      try_right.call
     when "up"
-      holding[event.key] = Time.now
-      figure = figure.reverse.transpose
-      if collision.call
-        figure = figure.transpose.reverse
-      else
-        draw_state.call
-      end
+      try_up.call
     end
   end
 end
 on :key_held do |event|
   semaphore.synchronize do
     case event.key
+    when "left"
+      next if 0.5 > Time.now - holding[event.key]
+      try_left.call
+    when "right"
+      next if 0.5 > Time.now - holding[event.key]
+      try_right.call
     when "up"
       next if 0.5 > Time.now - holding[event.key]
-      figure = figure.reverse.transpose
-      if collision.call
-        figure = figure.transpose.reverse
-      else
-        draw_state.call
-      end
+      try_up.call
     when "down"
       y += 1
       if collision.call
@@ -176,12 +184,6 @@ on :key_held do |event|
         draw_state.call
       end
     end
-  end
-end
-on :key_up do |event|
-  case event.key
-  when "up"
-    holding.delete event.key
   end
 end
 
