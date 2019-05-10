@@ -1,30 +1,11 @@
 # frozen_string_literal: true
 
 
-pats = [
-  %w{ 1111    },
-  %w{ 11  11  },
-  %w{ 011 110 },
-  %w{ 110 011 },
-  %w{ 100 111 },
-  %w{ 001 111 },
-  %w{ 010 111 },
-]
-num = dir = nil
 
-rotated = lambda do
-  pat = pats[num - 1].map{ |st| st.chars.map &:to_i }
-  dir.times do
-    pat = pat.reverse.transpose
-  end
-  pat
-end
-
+figure = num = nil
 get = lambda do
-  rotated.call.map{ |row| row.map{ |i| i * num } }
+  figure.map{ |row| row.map{ |i| i * num } }
 end
-
-
 x = y = nil
 
 width, height = 10, 20
@@ -62,23 +43,27 @@ render = lambda do
     Array.new(width) do |x|
       Square.new x: margin + block_margin + s * x,
                  y: margin + block_margin + s * y,
-                 size: block_side, color: "red", z: 10
+                 size: block_side
     end
   end
   lambda do
     height.times do |y|
       width.times do |x|
-        blocks[y][x].color = %w{ #158FAC #F1F101 #2FFF43 #DF0F0F #5858FF #FFB950 #FF98F3 }[field[y][x] - 1]
-        field[y][x].zero? ? blocks[y][x].remove : blocks[y][x].add
+        if field[y][x].zero?
+          blocks[y][x].remove
+        else
+          blocks[y][x].color = %w{ #158FAC #F1F101 #2FFF43 #DF0F0F #5858FF #FFB950 #FF98F3 }[field[y][x] - 1]
+          blocks[y][x].add
+        end
       end
     end
   end
 end.call
 
 collision = lambda do
-  return true if y + rotated.call.      size > height
-  return true if x + rotated.call.first.size > width
-  get.call.map.each_with_index.any? do |row, dy|
+  return true if y + figure.      size > height
+  return true if x + figure.first.size > width
+  get.call.map.with_index.any? do |row, dy|
     row.map.each_with_index.any? do |a, dx|
       a.nonzero? && field[y + dy][x + dx].nonzero?
     end
@@ -94,7 +79,7 @@ update do
   key_lock = true
   tick += 1
 
-  if dir && (tick % wait).zero?
+  if num && (tick % wait).zero?
     delete_from_field.call
     y += 1
     unless collision.call
@@ -105,13 +90,24 @@ update do
       a, b = field.partition{ |row| row.none? &:zero? }
       field = a.map{ Array.new width, 0 } + b
       wait = 18
-      dir = nil
+      num = nil
     end
   end
 
-  unless dir
-    x, y, dir = 3, 0, 0
+  unless num
+    pats = [
+      %w{ 1111    },
+      %w{ 11  11  },
+      %w{ 011 110 },
+      %w{ 110 011 },
+      %w{ 100 111 },
+      %w{ 001 111 },
+      %w{ 010 111 },
+    ]
     num = rand 1..pats.size
+    figure = pats[num - 1].map{ |st| st.chars.map &:to_i }
+    x, y = 3, 0
+
     abort "game over" if collision.call
     write_to_field.call
   end
@@ -135,8 +131,8 @@ on :key_down do |event|
   when "up"    then
     delete_from_field.call
 
-    dir = (dir + 1) % 4
-    dir = (dir - 1) % 4 if collision.call
+    figure = figure.reverse.transpose
+    figure = figure.transpose.reverse if collision.call
 
     write_to_field.call
   when "down"  then wait = 2
