@@ -64,23 +64,20 @@ collision = lambda do
 end
 
 
-wait = 18
+semaphore = Mutex.new
 
-key_lock = false
 tick = 0
 update do
-  next if key_lock
-  key_lock = true
   tick += 1
 
-  if num && (tick % wait).zero?
+  semaphore.synchronize do
+  if num && (tick % 20).zero?
     y += 1
     if collision.call
       y -= 1
       draw.call true
       a, b = field.partition &:all?
       field = a.map{ Array.new width } + b
-      wait = 18
       num = nil
     end
   end
@@ -102,7 +99,7 @@ update do
     abort "game over" if collision.call
   end
   render.call
-  key_lock = false
+  end
 end
 
 move = lambda do |dx|
@@ -111,8 +108,7 @@ move = lambda do |dx|
 end
 
 on :key_down do |event|
-  next if key_lock
-  key_lock = true
+  semaphore.synchronize do
   case event.key
   when "left"  then move.call -1
   when "right" then move.call 1
@@ -120,17 +116,16 @@ on :key_down do |event|
     figure = figure.reverse.transpose
     figure = figure.transpose.reverse if collision.call
   end
-  key_lock = false
+  end
 end
 on :key_held do |event|
-  next if key_lock
-  key_lock = true
   case event.key
   when "down"
+    semaphore.synchronize do
     y += 1
     y -= 1 if collision.call
+    end
   end
-  key_lock = false
 end
 
 show

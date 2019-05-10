@@ -1,4 +1,6 @@
 based on https://gist.github.com/obelisk68/15ffdf1bfd82953361be0264b5ea4119
+reduced original LOC from 211 to 126
+now adding features
 
 
 TODO
@@ -9,4 +11,7 @@ TODO
 * scoreboard
 * (done) not full going DOWN
 * ability to hold UP just for fun
-* Mutex stdlib class instead of key_lock var
+* (done) Mutex stdlib class instead of key_lock var
+* autoresize to screen
+* option to restart
+* cheat for testing purposes
