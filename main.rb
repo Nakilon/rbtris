@@ -37,7 +37,7 @@ render = lambda do
     height.times do |y|
       width.times do |x|
         if field[y][x]
-          blocks[y][x].color = %w{ #158FAC #F1F101 #2FFF43 #DF0F0F #5858FF #FFB950 #FF98F3 }[(field[y][x] || 0) - 1]
+          blocks[y][x].color = %w{ aqua yellow green red blue orange purple }[(field[y][x] || 0) - 1]
           blocks[y][x].add
         else
           blocks[y][x].remove
@@ -78,7 +78,7 @@ update do
     end
 
     unless figure
-      pats = [
+      figure = [
         %w{ 1111    },
         %w{ 22  22  },
         %w{ 033 330 },
@@ -86,8 +86,7 @@ update do
         %w{ 500 555 },
         %w{ 006 666 },
         %w{ 070 777 },
-      ]
-      figure = pats.sample.map{ |st| st.chars.map &:to_i }
+      ].sample.map{ |st| st.chars.map &:to_i }
       x, y = 3, 0
 
       abort "game over" if collision.call
