@@ -107,24 +107,36 @@ move = lambda do |dx|
   x -= dx if x < 0 || collision.call
 end
 
+holding = Hash.new
 on :key_down do |event|
   semaphore.synchronize do
     case event.key
     when "left"  then move.call -1
-    when "right" then move.call 1
-    when "up"    then
+    when "right" then move.call +1
+    when "up"
+      holding[event.key] = Time.now
       figure = figure.reverse.transpose
       figure = figure.transpose.reverse if collision.call
     end
   end
 end
 on :key_held do |event|
-  case event.key
-  when "down"
-    semaphore.synchronize do
+  semaphore.synchronize do
+    case event.key
+    when "up"
+      next if 0.5 > Time.now - holding[event.key]
+      figure = figure.reverse.transpose
+      figure = figure.transpose.reverse if collision.call
+    when "down"
       y += 1
       y -= 1 if collision.call
     end
+  end
+end
+on :key_up do |event|
+  case event.key
+  when "up"
+    holding.delete event.key
   end
 end
 

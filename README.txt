@@ -5,12 +5,12 @@ now adding features
 
 TODO
 
-* bottom projetion
-* canonical shapes rotation and center
-* ability of a piece to shift itself by rotation bouncing the walls
-* scoreboard
-* (done) not full going DOWN
-* ability to hold UP just for fun
+* projetion of the piece at the bottom
+* canonical shapes rotation center
+* shift a piece by bouncing of the walls when rotating
+* scoreboard (maybe at $HOME/.rbtris)
+* (done) abilit to fall down only partially
+* (done) ability to hold UP (just for fun)
 * (done) Mutex stdlib class instead of key_lock var
 * autoresize to screen
 * option to restart
