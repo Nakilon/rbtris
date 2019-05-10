@@ -68,21 +68,20 @@ end
 
 semaphore = Mutex.new
 
-points = 0
-
 draw_state = lambda do
   draw.call true
   render.call
   draw.call false
 end
 
-level = points / 5
-row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
+points = level = row_time = 0
 first_time = prev = nil
 update do
   current = Time.now
   first_time ||= current
   semaphore.synchronize do
+    level = (((points / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor
+    row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
     prev ||= current - row_time
     if current >= prev + row_time
       prev += row_time
@@ -96,6 +95,7 @@ update do
           draw.call true
           a, b = field.partition &:all?
           field = a.map{ Array.new width } + b
+          points += [0, 1, 3, 5, 8].fetch a.size)
           render.call
           figure = nil
         end
