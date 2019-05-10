@@ -4,14 +4,9 @@
 width, height = 10, 20
 field = Array.new(height){ Array.new width }
 
-figure = num = nil
-get = lambda do
-  figure.map{ |row| row.map{ |i| i * num } }
-end
-
-x = y = nil
+figure = num = x = y = nil
 draw = lambda do |f|
-  get.call.each_with_index do |row, dy|
+  figure.each_with_index do |row, dy|
     row.each_index do |dx|
       next if row[dx].zero?
       field[y + dy][x + dx] = (row[dx] if f)
@@ -56,7 +51,7 @@ end.call
 collision = lambda do
   return true if y + figure.      size > height
   return true if x + figure.first.size > width
-  get.call.each_with_index.any? do |row, dy|
+  figure.each_with_index.any? do |row, dy|
     row.each_with_index.any? do |a, dx|
       !a.zero? && field[y + dy][x + dx]
     end
@@ -93,7 +88,7 @@ update do
         %w{ 010 111 },
       ]
       num = rand 1..pats.size
-      figure = pats[num - 1].map{ |st| st.chars.map &:to_i }
+      figure = pats[num - 1].map{ |st| st.chars.map{ |c| c.to_i * num } }
       x, y = 3, 0
 
       abort "game over" if collision.call
