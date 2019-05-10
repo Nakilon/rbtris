@@ -1,11 +1,23 @@
 # frozen_string_literal: true
 
 
-
-x = y = nil
-
 width, height = 10, 20
 field = Array.new(height){ Array.new width }
+
+figure = num = nil
+get = lambda do
+  figure.map{ |row| row.map{ |i| i * num } }
+end
+
+x = y = nil
+draw = lambda do |f|
+  get.call.each_with_index do |row, dy|
+    row.each_index do |dx|
+      next if row[dx].zero?
+      field[y + dy][x + dx] = (row[dx] if f)
+    end
+  end
+end
 
 require "ruby2d"
 render = lambda do
@@ -26,6 +38,7 @@ render = lambda do
     end
   end
   lambda do
+    draw.call true
     height.times do |y|
       width.times do |x|
         if field[y][x]
@@ -36,13 +49,9 @@ render = lambda do
         end
       end
     end
+    draw.call false
   end
 end.call
-
-figure = num = nil
-get = lambda do
-  figure.map{ |row| row.map{ |i| i * num } }
-end
 
 collision = lambda do
   return true if y + figure.      size > height
@@ -55,15 +64,6 @@ collision = lambda do
 end
 
 
-draw = lambda do |f|
-  get.call.map.with_index do |row, dy|
-    row.each_index do |dx|
-      next if row[dx].zero?
-      field[y + dy][x + dx] = (row[dx] if f)
-    end
-  end
-end
-
 wait = 18
 
 key_lock = false
@@ -73,11 +73,8 @@ update do
   tick += 1
 
   if num && (tick % wait).zero?
-    draw.call false
     y += 1
-    unless collision.call
-      draw.call true
-    else
+    if collision.call
       y -= 1
       draw.call true
       a, b = field.partition &:all?
@@ -102,17 +99,14 @@ update do
     x, y = 3, 0
 
     abort "game over" if collision.call
-    draw.call true
   end
   render.call
   key_lock = false
 end
 
 move = lambda do |dx|
-  draw.call false
   x += dx
   x -= dx if x < 0 || collision.call
-  draw.call true
 end
 
 on :key_down do |event|
@@ -122,12 +116,8 @@ on :key_down do |event|
   when "left"  then move.call -1
   when "right" then move.call 1
   when "up"    then
-    draw.call false
-
     figure = figure.reverse.transpose
     figure = figure.transpose.reverse if collision.call
-
-    draw.call true
   when "down"  then wait = 2
   end
   key_lock = false
