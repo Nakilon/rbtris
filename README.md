@@ -17,3 +17,5 @@ TODO
 * [ ] autoresize to screen
 * [ ] option to restart
 * [ ] cheat for testing purposes
+* [ ] canonical increasing speed
+* [ ] holding LEFT and RIGHT

@@ -22,29 +22,36 @@ render = lambda do
   margin = 30
   w = margin * 2 + s * width
   h = margin * 2 + s * height
-  Window.set width: w, height: h, title: "rbTris"
+  set width: w, height: h, title: "rbTris"
   Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "gray"
   Rectangle.new x: margin, y: margin, width: w - 2 * margin, height: h - 2 * margin, color: "black"
   blocks = Array.new(height) do |y|
     Array.new(width) do |x|
-      Square.new x: margin + block_margin + s * x,
-                 y: margin + block_margin + s * y,
-                 size: block_side
+      [
+        Square.new(x: margin + block_margin + s * x,
+                   y: margin + block_margin + s * y,
+                   size: block_side),
+        nil
+      ]
     end
   end
   lambda do
-    draw.call true
-    height.times do |y|
-      width.times do |x|
-        if field[y][x]
-          blocks[y][x].color = %w{ aqua yellow green red blue orange purple }[(field[y][x] || 0) - 1]
-          blocks[y][x].add
+    blocks.each_with_index do |row, i|
+      row.each_with_index do |(block, drawn), j|
+        if field[i][j]
+          unless drawn == true
+            block.color = %w{ aqua yellow green red blue orange purple }[(field[i][j] || 0) - 1]
+            block.add
+            row[j][1] = true
+          end
         else
-          blocks[y][x].remove
+          unless drawn == false
+            block.remove
+            row[j][1] = false
+          end
         end
       end
     end
-    draw.call false
   end
 end.call
 
@@ -61,20 +68,41 @@ end
 
 semaphore = Mutex.new
 
-tick = 0
-update do
-  tick += 1
+points = 0
 
+draw_state = lambda do
+  draw.call true
+  render.call
+  draw.call false
+end
+
+level = points / 5
+row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
+first_time = prev = nil
+update do
+  current = Time.now
+  first_time ||= current
   semaphore.synchronize do
-    if figure && (tick % 20).zero?
+    if !prev || current >= prev + row_time
+      puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
+      if prev
+        prev += row_time
+      else
+        prev = current
+      end
+    if figure# && (Window.frames.round % 5).zero?
       y += 1
-      if collision.call
+      unless collision.call
+        draw_state.call
+      else
         y -= 1
         draw.call true
         a, b = field.partition &:all?
         field = a.map{ Array.new width } + b
+        render.call
         figure = nil
       end
+    end
     end
 
     unless figure
@@ -90,26 +118,40 @@ update do
       x, y = 3, 0
 
       abort "game over" if collision.call
+
+      draw_state.call
     end
-    render.call
   end
 end
 
-move = lambda do |dx|
-  x += dx
-  x -= dx if x < 0 || collision.call
-end
 
 holding = Hash.new
+
 on :key_down do |event|
   semaphore.synchronize do
     case event.key
-    when "left"  then move.call -1
-    when "right" then move.call +1
+    when "left"
+      x -= 1
+      if x < 0 || collision.call
+        x += 1
+      else
+        draw_state.call
+      end
+    when "right"
+      x += 1
+      if collision.call
+        x -= 1
+      else
+        draw_state.call
+      end
     when "up"
       holding[event.key] = Time.now
       figure = figure.reverse.transpose
-      figure = figure.transpose.reverse if collision.call
+      if collision.call
+        figure = figure.transpose.reverse
+      else
+        draw_state.call
+      end
     end
   end
 end
@@ -119,10 +161,20 @@ on :key_held do |event|
     when "up"
       next if 0.5 > Time.now - holding[event.key]
       figure = figure.reverse.transpose
-      figure = figure.transpose.reverse if collision.call
+      if collision.call
+        figure = figure.transpose.reverse
+      else
+        draw_state.call
+      end
     when "down"
       y += 1
-      y -= 1 if collision.call
+      if collision.call
+        prev = Time.now - row_time
+        y -= 1
+      else
+        prev = Time.now
+        draw_state.call
+      end
     end
   end
 end
