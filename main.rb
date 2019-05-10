@@ -16,7 +16,7 @@ render = lambda do
   w = margin * 2 + s * width
   h = margin * 2 + s * height
   Window.set width: w, height: h, title: "rbTris"
-  Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "#ABF8FC"
+  Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "gray"
   Rectangle.new x: margin, y: margin, width: w - 2 * margin, height: h - 2 * margin, color: "black"
   blocks = Array.new(height) do |y|
     Array.new(width) do |x|
