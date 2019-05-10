@@ -69,6 +69,7 @@ wait = 18
 key_lock = false
 tick = 0
 update do
+  next if key_lock
   key_lock = true
   tick += 1
 
@@ -118,7 +119,16 @@ on :key_down do |event|
   when "up"    then
     figure = figure.reverse.transpose
     figure = figure.transpose.reverse if collision.call
-  when "down"  then wait = 2
+  end
+  key_lock = false
+end
+on :key_held do |event|
+  next if key_lock
+  key_lock = true
+  case event.key
+  when "down"
+    y += 1
+    y -= 1 if collision.call
   end
   key_lock = false
 end
