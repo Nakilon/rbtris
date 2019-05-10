@@ -71,34 +71,34 @@ update do
   tick += 1
 
   semaphore.synchronize do
-  if num && (tick % 20).zero?
-    y += 1
-    if collision.call
-      y -= 1
-      draw.call true
-      a, b = field.partition &:all?
-      field = a.map{ Array.new width } + b
-      num = nil
+    if num && (tick % 20).zero?
+      y += 1
+      if collision.call
+        y -= 1
+        draw.call true
+        a, b = field.partition &:all?
+        field = a.map{ Array.new width } + b
+        num = nil
+      end
     end
-  end
 
-  unless num
-    pats = [
-      %w{ 1111    },
-      %w{ 11  11  },
-      %w{ 011 110 },
-      %w{ 110 011 },
-      %w{ 100 111 },
-      %w{ 001 111 },
-      %w{ 010 111 },
-    ]
-    num = rand 1..pats.size
-    figure = pats[num - 1].map{ |st| st.chars.map &:to_i }
-    x, y = 3, 0
+    unless num
+      pats = [
+        %w{ 1111    },
+        %w{ 11  11  },
+        %w{ 011 110 },
+        %w{ 110 011 },
+        %w{ 100 111 },
+        %w{ 001 111 },
+        %w{ 010 111 },
+      ]
+      num = rand 1..pats.size
+      figure = pats[num - 1].map{ |st| st.chars.map &:to_i }
+      x, y = 3, 0
 
-    abort "game over" if collision.call
-  end
-  render.call
+      abort "game over" if collision.call
+    end
+    render.call
   end
 end
 
@@ -109,21 +109,21 @@ end
 
 on :key_down do |event|
   semaphore.synchronize do
-  case event.key
-  when "left"  then move.call -1
-  when "right" then move.call 1
-  when "up"    then
-    figure = figure.reverse.transpose
-    figure = figure.transpose.reverse if collision.call
-  end
+    case event.key
+    when "left"  then move.call -1
+    when "right" then move.call 1
+    when "up"    then
+      figure = figure.reverse.transpose
+      figure = figure.transpose.reverse if collision.call
+    end
   end
 end
 on :key_held do |event|
   case event.key
   when "down"
     semaphore.synchronize do
-    y += 1
-    y -= 1 if collision.call
+      y += 1
+      y -= 1 if collision.call
     end
   end
 end
