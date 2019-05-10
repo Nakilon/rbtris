@@ -28,7 +28,7 @@ end
 x = y = nil
 
 width, height = 10, 20
-field = Array.new(height){ Array.new(width){ 0 } }
+field = Array.new(height){ Array.new width, 0 }
 
 write_to_field = lambda do
   get.call.map.with_index do |row, dy|
@@ -88,39 +88,33 @@ end
 
 wait = 18
 
-new_tetromino = lambda do
-  x, y, dir = 3, 0, 0
-  num = rand 1..pats.size
-end
-new_tetromino.call
-
-write_to_field.call
-render.call
 key_lock = false
 tick = 0
 update do
   key_lock = true
   tick += 1
 
-  if (tick % wait).zero?
+  if dir && (tick % wait).zero?
     delete_from_field.call
-    tt = false
     y += 1
-    if collision.call
+    unless collision.call
+      write_to_field.call
+    else
       y -= 1
-      tt = true
-    end
-    write_to_field.call
-    if tt
+      write_to_field.call
       a, b = field.partition{ |row| row.none? &:zero? }
       field = a.map{ Array.new width, 0 } + b
-        wait = 18
-        new_tetromino.call
-        fail "game over" if collision.call
-        write_to_field.call
+      wait = 18
+      dir = nil
     end
   end
 
+  unless dir
+    x, y, dir = 3, 0, 0
+    num = rand 1..pats.size
+    abort "game over" if collision.call
+    write_to_field.call
+  end
   render.call
   key_lock = false
 end
@@ -141,9 +135,8 @@ on :key_down do |event|
   when "up"    then
     delete_from_field.call
 
-    old = dir
     dir = (dir + 1) % 4
-    dir = old if collision.call
+    dir = (dir - 1) % 4 if collision.call
 
     write_to_field.call
   when "down"  then wait = 2
