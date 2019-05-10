@@ -4,7 +4,7 @@
 width, height = 10, 20
 field = Array.new(height){ Array.new width }
 
-figure = num = x = y = nil
+figure = x = y = nil
 draw = lambda do |f|
   figure.each_with_index do |row, dy|
     row.each_index do |dx|
@@ -66,29 +66,28 @@ update do
   tick += 1
 
   semaphore.synchronize do
-    if num && (tick % 20).zero?
+    if figure && (tick % 20).zero?
       y += 1
       if collision.call
         y -= 1
         draw.call true
         a, b = field.partition &:all?
         field = a.map{ Array.new width } + b
-        num = nil
+        figure = nil
       end
     end
 
-    unless num
+    unless figure
       pats = [
         %w{ 1111    },
-        %w{ 11  11  },
-        %w{ 011 110 },
-        %w{ 110 011 },
-        %w{ 100 111 },
-        %w{ 001 111 },
-        %w{ 010 111 },
+        %w{ 22  22  },
+        %w{ 033 330 },
+        %w{ 440 044 },
+        %w{ 500 555 },
+        %w{ 006 666 },
+        %w{ 070 777 },
       ]
-      num = rand 1..pats.size
-      figure = pats[num - 1].map{ |st| st.chars.map{ |c| c.to_i * num } }
+      figure = pats.sample.map{ |st| st.chars.map &:to_i }
       x, y = 3, 0
 
       abort "game over" if collision.call

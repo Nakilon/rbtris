@@ -2,7 +2,7 @@
 
 based on https://gist.github.com/obelisk68/15ffdf1bfd82953361be0264b5ea4119
 
-reduced original LOC from 211 to 126  
+reduced original LOC from 211 to ~125  
 now adding features
 
 TODO
