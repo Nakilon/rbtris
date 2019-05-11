@@ -1,11 +1,13 @@
-![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot1.png)
+![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot2.png)
 
 based on https://gist.github.com/obelisk68/15ffdf1bfd82953361be0264b5ea4119
 
 reduced original LOC from 211 to ~125  
-now adding features
+now adding features -- some of them are listed below
 
-TODO
+for the cool font that you see on the screenshot, download the https://fonts.google.com/download?family=Press%20Start%202P to the working directory where you run the `bundle exec ruby main.rb`
+
+TODO:
 
 * [ ] projetion of the piece at the bottom
 * [ ] canonical shapes rotation center
@@ -19,4 +21,5 @@ TODO
 * [ ] cheat for testing purposes
 * [x] canonical increase of speed
 * [x] holding LEFT and RIGHT
-* [ ] canonical scoring
+* [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)
+* [ ] see next piece

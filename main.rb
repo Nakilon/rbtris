@@ -17,7 +17,7 @@ end
 require "ruby2d"
 render = lambda do
   block_margin = 1
-  block_side = 25
+  block_side = 35
   s = block_margin * 2 + block_side
   margin = 30
   w = margin * 2 + s * width
@@ -74,13 +74,18 @@ draw_state = lambda do
   draw.call false
 end
 
-points = level = row_time = 0
+points = row_time = 0
+text_score = Text.new points, x: 5, y: 5, font: Font.path("PressStart2P-Regular.ttf")
+text_level = Text.new points, x: 5, y: 5, font: Font.path("PressStart2P-Regular.ttf")
 first_time = prev = nil
 update do
   current = Time.now
   first_time ||= current
   semaphore.synchronize do
+    text_score.text = "Score: #{points}"
     level = (((points / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor
+    text_level.text = "Level: #{level}"
+    text_level.x = Window.width - 5 - text_level.width
     row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
     prev ||= current - row_time
     if current >= prev + row_time
@@ -88,14 +93,13 @@ update do
       if figure
         y += 1
         unless collision.call
-          puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
           draw_state.call
         else
           y -= 1
           draw.call true
           a, b = field.partition &:all?
           field = a.map{ Array.new width } + b
-          points += [0, 1, 3, 5, 8].fetch a.size)
+          points += [0, 1, 3, 5, 8].fetch a.size
           render.call
           figure = nil
         end
@@ -114,7 +118,7 @@ update do
       ].sample.map{ |st| st.chars.map &:to_i }
       x, y = 3, 0
 
-      abort "game over" if collision.call
+      abort "#{text_score.text}\n#{text_level.text}" if collision.call
 
       draw_state.call
     end
