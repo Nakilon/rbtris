@@ -1,4 +1,4 @@
-![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot2.png)
+![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot3.png)
 
 based on https://gist.github.com/obelisk68/15ffdf1bfd82953361be0264b5ea4119
 
@@ -23,3 +23,7 @@ TODO:
 * [x] holding LEFT and RIGHT
 * [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)
 * [ ] see next piece
+* [ ] pause key
+* [ ] window size configuration
+* [ ] canonical music
+* [ ] restore controller support
