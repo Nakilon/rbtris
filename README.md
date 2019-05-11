@@ -26,3 +26,7 @@ TODO:
 * [ ] canonical music
 * [ ] restore controller support
 * [ ] color scheme configuration
+
+Sketch of the almost current program structure:
+
+![](https://storage.googleapis.com/rbtris.github.nakilon.pro/refactoring4.JPG)

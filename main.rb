@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 
-width, height = 10, 20
-field = Array.new(height){ Array.new width }
+field = Array.new(20){ Array.new 10 }
 
 figure = x = y = nil
-draw = lambda do |f|
+mix = lambda do |f|
   figure.each_with_index do |row, dy|
     row.each_index do |dx|
       next if row[dx].zero?
@@ -20,13 +19,13 @@ render = lambda do
   block_side = 35
   s = block_margin * 2 + block_side
   margin = 30
-  w = margin * 2 + s * width
-  h = margin * 2 + s * height
+  w = margin * 2 + s * field.first.size
+  h = margin * 2 + s * field.size
   set width: w, height: h, title: "rbTris"
   Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "gray"
   Rectangle.new x: margin, y: margin, width: w - 2 * margin, height: h - 2 * margin, color: "black"
-  blocks = Array.new(height) do |y|
-    Array.new(width) do |x|
+  blocks = Array.new(field.size) do |y|
+    Array.new(field.first.size) do |x|
       [
         Square.new(x: margin + block_margin + s * x,
                    y: margin + block_margin + s * y,
@@ -56,8 +55,9 @@ render = lambda do
 end.call
 
 collision = lambda do
-  return true if y + figure.      size > height
-  return true if x + figure.first.size > width
+  return true if x < 0
+  return true if y + figure.      size > field.      size
+  return true if x + figure.first.size > field.first.size
   figure.each_with_index.any? do |row, dy|
     row.each_with_index.any? do |a, dx|
       !a.zero? && field[y + dy][x + dx]
@@ -69,15 +69,16 @@ end
 semaphore = Mutex.new
 
 draw_state = lambda do
-  draw.call true
+  mix.call true
   render.call
-  draw.call false
+  mix.call false
 end
 
-points = row_time = 0
+prev, row_time = nil, 0
+tap do
+  points, first_time = 0, nil
 text_score = Text.new points, x: 5, y: 5, font: Font.path("PressStart2P-Regular.ttf")
 text_level = Text.new points, x: 5, y: 5, font: Font.path("PressStart2P-Regular.ttf")
-first_time = prev = nil
 update do
   current = Time.now
   first_time ||= current
@@ -96,9 +97,9 @@ update do
           draw_state.call
         else
           y -= 1
-          draw.call true
+          mix.call true
           a, b = field.partition &:all?
-          field = a.map{ Array.new width } + b
+          field = a.map{ Array.new field.first.size } + b
           points += [0, 1, 3, 5, 8].fetch a.size
           render.call
           figure = nil
@@ -124,13 +125,14 @@ update do
     end
   end
 end
+end
 
 
 holding = Hash.new
 
 try_left = lambda do
   x -= 1
-  next draw_state.call unless x < 0 || collision.call
+  next draw_state.call unless collision.call
   x += 1
 end
 try_right = lambda do
