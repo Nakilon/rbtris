@@ -130,54 +130,36 @@ holding = Hash.new
 
 try_left = lambda do
   x -= 1
-  if x < 0 || collision.call
-    x += 1
-  else
-    draw_state.call
-  end
+  next draw_state.call unless x < 0 || collision.call
+  x += 1
 end
 try_right = lambda do
   x += 1
-  if collision.call
-    x -= 1
-  else
-    draw_state.call
-  end
+  next draw_state.call unless collision.call
+  x -= 1
 end
 try_up = lambda do
   figure = figure.reverse.transpose
-  if collision.call
-    figure = figure.transpose.reverse
-  else
-    draw_state.call
-  end
+  next draw_state.call unless collision.call
+  figure = figure.transpose.reverse
 end
 
 on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
     case event.key
-    when "left"
-      try_left.call
-    when "right"
-      try_right.call
-    when "up"
-      try_up.call
+    when "left"  ; try_left.call
+    when "right" ; try_right.call
+    when "up"    ; try_up.call
     end
   end
 end
 on :key_held do |event|
   semaphore.synchronize do
     case event.key
-    when "left"
-      next if 0.5 > Time.now - holding[event.key]
-      try_left.call
-    when "right"
-      next if 0.5 > Time.now - holding[event.key]
-      try_right.call
-    when "up"
-      next if 0.5 > Time.now - holding[event.key]
-      try_up.call
+    when "left"  ; try_left.call  unless 0.5 > Time.now - holding[event.key]
+    when "right" ; try_right.call unless 0.5 > Time.now - holding[event.key]
+    when "up"    ; try_up.call    unless 0.5 > Time.now - holding[event.key]
     when "down"
       y += 1
       if collision.call
