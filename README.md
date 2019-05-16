@@ -8,7 +8,7 @@ For cool font that you see above, [download the .zip from Google Fonts](https://
 TODO:
 
 * [ ] projetion of the piece at the bottom
-* [ ] canonical shapes rotation center
+* [x] [SRS canonical rotation](https://tetris.fandom.com/wiki/SRS)
 * [ ] shift a piece by bouncing of the walls when rotating
 * [ ] scoreboard (maybe at `$HOME/.rbtris`)
 * [x] ability to fall down only partially
@@ -26,6 +26,7 @@ TODO:
 * [ ] canonical music
 * [ ] restore controller support
 * [ ] color scheme configuration
+* [ ] SRS wall kicks
 
 Sketch of the almost current program structure:
 

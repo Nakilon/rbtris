@@ -54,13 +54,14 @@ render = lambda do
   end
 end.call
 
-collision = lambda do
-  return true if x < 0
-  return true if y + figure.      size > field.      size
-  return true if x + figure.first.size > field.first.size
-  figure.each_with_index.any? do |row, dy|
-    row.each_with_index.any? do |a, dx|
-      !a.zero? && field[y + dy][x + dx]
+collision = lambda do   # there is no collision
+  figure.each_with_index.all? do |row, dy|
+    row.each_with_index.all? do |a, dx|
+      a.zero? || (
+        ((0...field.size      ) === y + dy) &&
+        ((0...field.first.size) === x + dx) &&
+        !field[y + dy][x + dx]
+      )
     end
   end
 end
@@ -93,7 +94,7 @@ tap do
         prev += row_time
         if figure
           y += 1
-          unless collision.call
+          if collision.call
             draw_state.call
           else
             y -= 1
@@ -116,11 +117,14 @@ tap do
           %w{ 500 555 },
           %w{ 006 666 },
           %w{ 070 777 },
-        ].sample.map{ |st| st.chars.map &:to_i }
+        ].sample
+        rest = figure.first.size - figure.size
+        figure = (
+          [?0 * figure.first.size] * (rest / 2) + figure +
+          [?0 * figure.first.size] * (rest - rest / 2)
+        ).map!{ |st| st.chars.map &:to_i }
         x, y = 3, 0
-
-        abort "#{text_score.text}\n#{text_level.text}" if collision.call
-
+        abort "#{text_score.text}\n#{text_level.text}" unless collision.call
         draw_state.call
       end
     end
@@ -132,17 +136,17 @@ holding = Hash.new
 
 try_left = lambda do
   x -= 1
-  next draw_state.call unless collision.call
+  next draw_state.call if collision.call
   x += 1
 end
 try_right = lambda do
   x += 1
-  next draw_state.call unless collision.call
+  next draw_state.call if collision.call
   x -= 1
 end
 try_up = lambda do
   figure = figure.reverse.transpose
-  next draw_state.call unless collision.call
+  next draw_state.call if collision.call
   figure = figure.transpose.reverse
 end
 
@@ -164,7 +168,7 @@ on :key_held do |event|
     when "up"    ; try_up.call    unless 0.5 > Time.now - holding[event.key]
     when "down"
       y += 1
-      if collision.call
+      unless collision.call
         prev = Time.now - row_time
         y -= 1
       else
