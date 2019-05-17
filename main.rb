@@ -13,6 +13,14 @@ mix = lambda do |f|
   end
 end
 
+unless File.exist? "PressStart2P-Regular.ttf"
+  require "nethttputils"
+  require "zip"
+  tempfile = Tempfile.new "Press_Start_2P.zip"
+  File.binwrite tempfile, NetHTTPUtils.request_data("https://fonts.google.com/download?family=Press%20Start%202P")
+  Zip::File.open(tempfile){ |zip| zip.extract "PressStart2P-Regular.ttf", "PressStart2P-Regular.ttf" }
+end
+
 require "ruby2d"
 render = lambda do
   block_margin = 1

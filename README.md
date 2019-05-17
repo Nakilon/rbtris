@@ -3,7 +3,7 @@
 Reduced [original gist](https://gist.github.com/obelisk68/15ffdf1bfd82953361be0264b5ea4119) LOC from 211 to ~125.  
 Now adding features -- some of them are listed below in the TODO list.
 
-For cool font that you see above, [download the .zip from Google Fonts](https://fonts.google.com/download?family=Press%20Start%202P) and unpack the `PressStart2P-Regular.ttf` to the cloned repo directory where you run the `bundle install && bundle exec ruby main.rb`. By default ruby2d looks for font only in system directory -- this is why ruby2d dependency here was [forked and patched](https://github.com/Nakilon/ruby2d/commit/a80fa4b47e713e22995a7c2698fd055f5464b23b) a bit to support sourcing current directory and `$HOME/Library/Fonts` one.
+By default ruby2d looks for a font only in one system directory -- this is why ruby2d dependency here was [forked and patched](https://github.com/Nakilon/ruby2d/commit/a80fa4b47e713e22995a7c2698fd055f5464b23b) a bit to support sourcing from the working directory (and `$HOME/Library/Fonts` one).
 
 TODO:
 
