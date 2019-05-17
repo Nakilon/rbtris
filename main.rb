@@ -1,17 +1,11 @@
 # frozen_string_literal: true
 
 
-field = Array.new(20){ Array.new 10 }
-
-figure = x = y = nil
-mix = lambda do |f|
-  figure.each_with_index do |row, dy|
-    row.each_index do |dx|
-      next if row[dx].zero?
-      field[y + dy][x + dx] = (row[dx] if f)
-    end
-  end
+points = field = figure = x = y = nil
+restart = lambda do
+  points, figure, field = 0, nil, Array.new(20){ Array.new 10 }
 end
+restart.call
 
 unless File.exist? "PressStart2P-Regular.ttf"
   require "nethttputils"
@@ -20,7 +14,6 @@ unless File.exist? "PressStart2P-Regular.ttf"
   File.binwrite tempfile, NetHTTPUtils.request_data("https://fonts.google.com/download?family=Press%20Start%202P")
   Zip::File.open(tempfile){ |zip| zip.extract "PressStart2P-Regular.ttf", "PressStart2P-Regular.ttf" }
 end
-
 require "ruby2d"
 render = lambda do
   block_margin = 1
@@ -76,6 +69,15 @@ end
 
 
 semaphore = Mutex.new
+
+mix = lambda do |f|
+  figure.each_with_index do |row, dy|
+    row.each_index do |dx|
+      next if row[dx].zero?
+      field[y + dy][x + dx] = (row[dx] if f)
+    end
+  end
+end
 
 draw_state = lambda do
   mix.call true
@@ -140,8 +142,6 @@ tap do
 end
 
 
-holding = Hash.new
-
 try_left = lambda do
   x -= 1
   next draw_state.call if collision.call
@@ -158,6 +158,7 @@ try_up = lambda do
   figure = figure.transpose.reverse
 end
 
+holding = Hash.new
 on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
@@ -165,6 +166,7 @@ on :key_down do |event|
     when "left"  ; try_left.call
     when "right" ; try_right.call
     when "up"    ; try_up.call
+    when "r"     ; restart.call
     end
   end
 end
