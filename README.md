@@ -4,6 +4,11 @@ Controls: arrows, R for restart.
 
 ![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot3.png)
 
+```bash
+bundle install
+bundle exec ruby main.rb
+```
+
 By default ruby2d looks for a font only in one system directory -- this is why ruby2d dependency here was [forked and patched](https://github.com/Nakilon/ruby2d/commit/a80fa4b47e713e22995a7c2698fd055f5464b23b) a bit to support sourcing from the working directory (and `$HOME/Library/Fonts`).
 
 TODO:

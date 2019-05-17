@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
 
-points = field = figure = x = y = nil
-restart = lambda do
-  points, figure, field = 0, nil, Array.new(20){ Array.new 10 }
-end
-restart.call
+points = figure = field = x = y = nil
 
 unless File.exist? "PressStart2P-Regular.ttf"
   require "nethttputils"
@@ -20,6 +16,7 @@ render = lambda do
   block_side = 35
   s = block_margin * 2 + block_side
   margin = 30
+  points, figure, field = 0, nil, Array.new(20){ Array.new 10 } unless points
   w = margin * 2 + s * field.first.size
   h = margin * 2 + s * field.size
   set width: w, height: h, title: "rbTris"
@@ -166,7 +163,7 @@ on :key_down do |event|
     when "left"  ; try_left.call
     when "right" ; try_right.call
     when "up"    ; try_up.call
-    when "r"     ; restart.call
+    when "r"     ; points = nil ; render.call
     end
   end
 end
