@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 
-points = figure = field = x = y = nil
-
 unless File.exist? "PressStart2P-Regular.ttf"
   require "nethttputils"
   require "zip"
@@ -10,18 +8,20 @@ unless File.exist? "PressStart2P-Regular.ttf"
   File.binwrite tempfile, NetHTTPUtils.request_data("https://fonts.google.com/download?family=Press%20Start%202P")
   Zip::File.open(tempfile){ |zip| zip.extract "PressStart2P-Regular.ttf", "PressStart2P-Regular.ttf" }
 end
+
+points = figure = field = x = y = nil
 require "ruby2d"
 render = lambda do
   block_margin = 1
   block_side = 35
   s = block_margin * 2 + block_side
   margin = 30
-  points, figure, field = 0, nil, Array.new(20){ Array.new 10 } unless points
+  field = Array.new(20){ Array.new 10 }
   w = margin * 2 + s * field.first.size
   h = margin * 2 + s * field.size
   set width: w, height: h, title: "rbTris"
-  Rectangle.new x: 0,      y: 0,      width: w,              height: h,              color: "gray"
-  Rectangle.new x: margin, y: margin, width: w - 2 * margin, height: h - 2 * margin, color: "black"
+  Rectangle.new width: w,              height: h,              color: "gray"
+  Rectangle.new width: w - 2 * margin, height: h - 2 * margin, color: "black", x: margin, y: margin
   blocks = Array.new(field.size) do |y|
     Array.new(field.first.size) do |x|
       [
@@ -33,6 +33,7 @@ render = lambda do
     end
   end
   lambda do
+    points, figure, field = 0, nil, Array.new(20){ Array.new 10 } unless points
     blocks.each_with_index do |row, i|
       row.each_with_index do |(block, drawn), j|
         if field[i][j]
@@ -65,13 +66,10 @@ collision = lambda do   # there is no collision
 end
 
 
-semaphore = Mutex.new
-
 mix = lambda do |f|
   figure.each_with_index do |row, dy|
     row.each_index do |dx|
-      next if row[dx].zero?
-      field[y + dy][x + dx] = (row[dx] if f)
+      field[y + dy][x + dx] = (row[dx] if f) unless row[dx].zero?
     end
   end
 end
@@ -82,6 +80,9 @@ draw_state = lambda do
   mix.call false
 end
 
+semaphore = Mutex.new
+paused = false
+
 prev, row_time = nil, 0
 tap do
   points, first_time = 0, nil
@@ -90,16 +91,16 @@ tap do
   update do
     current = Time.now
     first_time ||= current
+    text_score.text = "Score: #{points}"
     semaphore.synchronize do
-      text_score.text = "Score: #{points}"
-      level = (((points / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor
+      level = (((points / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor  # outside of Mutex points are being accesses by render[]
       text_level.text = "Level: #{level}"
       text_level.x = Window.width - 5 - text_level.width
       row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
       prev ||= current - row_time
       if current >= prev + row_time
         prev += row_time
-        if figure
+        if !paused && figure
           y += 1
           if collision.call
             draw_state.call
@@ -116,15 +117,7 @@ tap do
       end
 
       unless figure
-        figure = [
-          %w{ 1111    },
-          %w{ 22  22  },
-          %w{ 033 330 },
-          %w{ 440 044 },
-          %w{ 500 555 },
-          %w{ 006 666 },
-          %w{ 070 777 },
-        ].sample
+        figure = %w{ 070 777 006 666 500 555 440 044 033 330 22  22 1111 }.each_slice(2).to_a.sample
         rest = figure.first.size - figure.size
         figure = (
           [?0 * figure.first.size] * (rest / 2) + figure +
@@ -156,14 +149,19 @@ try_up = lambda do
 end
 
 holding = Hash.new
+pause_rect = Rectangle.new(width: Window.width, height: Window.height, color: [0.5, 0.5, 0.5, 0.75]).tap &:remove
+pause_text = Text.new("press 'P'", font: Font.path("PressStart2P-Regular.ttf")).tap &:remove
+pause_text.x = (Window.width - pause_text.width) / 2
+pause_text.y = (Window.height - pause_text.height) / 2
 on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_left.call
-    when "right" ; try_right.call
-    when "up"    ; try_up.call
-    when "r"     ; points = nil ; render.call
+    when "left"  ; try_left.call  unless paused
+    when "right" ; try_right.call unless paused
+    when "up"    ; try_up.call    unless paused
+    when "r" ; (points = nil ; render.call) unless paused
+    when "p" ; [pause_rect, pause_text].each &((paused ^= true) ? :add : :remove)
     end
   end
 end
@@ -183,7 +181,7 @@ on :key_held do |event|
         draw_state.call
       end
     end
-  end
+  end unless paused
 end
 
 show
