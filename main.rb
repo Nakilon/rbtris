@@ -13,8 +13,7 @@ end
 field = nil
 
 require "ruby2d"
-margin = 1
-block_size = 30 + 2 * margin
+block_size = 30 + 2 * margin = 1
 text_highscore = Text.new("press 'P'", x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf"))
 reset_field = lambda do
   field = Array.new(20){ Array.new 10 }
@@ -33,12 +32,9 @@ render = lambda do
   Rectangle.new width: w - 2 * s, height: h - 3 * s, color: "black", x: s, y: s * 2
   blocks = Array.new(field.size) do |y|
     Array.new(field.first.size) do |x|
-      [
-        Square.new(x: margin + s * (1 + x),
+      [ Square.new(x: margin + s * (1 + x),
                    y: margin + s * (2 + y),
-                   size: block_size - 2 * margin),
-        nil
-      ]
+                   size: block_size - 2 * margin) ]
     end
   end
   lambda do
@@ -62,21 +58,6 @@ render = lambda do
 end.call
 
 figure = x = y = nil
-collision = lambda do   # there is no collision
-  figure.each_with_index.all? do |row, dy|
-    row.each_with_index.all? do |a, dx|
-      a.zero? || (
-        ((0...field.size      ) === y + dy) &&
-        ((0...field.first.size) === x + dx) &&
-        !field[y + dy][x + dx]
-      )
-    end
-  end
-end
-points = nil
-text_score = Text.new points, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
-text_level = Text.new points, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
-
 mix = lambda do |f|
   figure.each_with_index do |row, dy|
     row.each_index do |dx|
@@ -89,6 +70,22 @@ draw_state = lambda do
   render.call
   mix.call false
 end
+
+collision = lambda do   # there is no collision
+  figure.each_with_index.all? do |row, dy|
+    row.each_with_index.all? do |a, dx|
+      a.zero? || (
+        ((0...field.size      ) === y + dy) &&
+        ((0...field.first.size) === x + dx) &&
+        !field[y + dy][x + dx]
+      )
+    end
+  end
+end
+
+points = nil
+text_score = Text.new points, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
+text_level = Text.new points, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
 
 paused = false
 pause_rect = Rectangle.new(width: Window.width, height: Window.height, color: [0.5, 0.5, 0.5, 0.75]).tap &:remove
@@ -119,9 +116,8 @@ semaphore = Mutex.new
 
 prev, row_time = nil, 0
 tap do
-  points, first_time = 0, nil
-  reset_field.call
-  init_figure.call
+  first_time = nil
+  reset.call
   update do
     current = Time.now
     first_time ||= current
@@ -136,36 +132,30 @@ tap do
         row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
       end
       prev ||= current - row_time
-      if current >= prev + row_time
-        prev += row_time
-        if !paused && figure
-          y += 1
-          if collision.call
-            draw_state.call
-          else
-            y -= 1
-            mix.call true
-            a, b = field.partition &:all?
-            field = a.map{ Array.new field.first.size } + b
-            points += [0, 1, 3, 5, 8].fetch a.size
-            render.call
-            init_figure.call
-          end
-        end
-      end
+      next unless current >= prev + row_time
+      prev += row_time
+      next unless !paused && figure
+      y += 1
+      next draw_state.call if collision.call
+      y -= 1
+      # puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
+      mix.call true
+      a, b = field.partition &:all?
+      field = a.map{ Array.new field.first.size } + b
+      points += [0, 1, 3, 5, 8].fetch a.size
+      render.call
+      init_figure.call
     end
   end
 end
 
 
 try_move = lambda do |dir|
-  next unless figure
   x += dir
   next draw_state.call if collision.call
   x -= dir
 end
 try_up = lambda do
-  next unless figure
   figure = figure.reverse.transpose
   next draw_state.call if collision.call
   figure = figure.transpose.reverse
@@ -178,9 +168,9 @@ on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_move[-1] unless paused
-    when "right" ; try_move[+1] unless paused
-    when "up"    ; try_up.call  unless paused
+    when "left"  ; try_move[-1] unless !figure || paused
+    when "right" ; try_move[+1] unless !figure || paused
+    when "up"    ; try_up.call  unless !figure || paused
     when "r"
       reset.call unless paused
     when "p", "space"
@@ -192,9 +182,9 @@ end
 on :key_held do |event|
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_move[-1] unless 0.5 > Time.now - holding[event.key]
-    when "right" ; try_move[+1] unless 0.5 > Time.now - holding[event.key]
-    when "up"    ; try_up.call  unless 0.5 > Time.now - holding[event.key]
+    when "left"  ; try_move[-1] unless !figure || 0.5 > Time.now - holding[event.key]
+    when "right" ; try_move[+1] unless !figure || 0.5 > Time.now - holding[event.key]
+    when "up"    ; try_up.call  unless !figure || 0.5 > Time.now - holding[event.key]
     when "down"
       y += 1
       unless collision.call
