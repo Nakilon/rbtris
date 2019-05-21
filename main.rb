@@ -82,21 +82,25 @@ end
 
 semaphore = Mutex.new
 paused = false
+pause_rect = Rectangle.new(width: Window.width, height: Window.height, color: [0.5, 0.5, 0.5, 0.75]).tap &:remove
+pause_text = Text.new("press 'P'", z: 1, font: Font.path("PressStart2P-Regular.ttf")).tap &:remove
 
 prev, row_time = nil, 0
 tap do
   points, first_time = 0, nil
-  text_score = Text.new points, x: 5, y: 5, font: Font.path("PressStart2P-Regular.ttf")
-  text_level = Text.new points, x: 5, y: 5, font: Font.path("PressStart2P-Regular.ttf")
+  text_score = Text.new points, x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
+  text_level = Text.new points, x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
   update do
     current = Time.now
     first_time ||= current
-    text_score.text = "Score: #{points}"
+    text_score.text = "Score: #{points}" unless paused
     semaphore.synchronize do
-      level = (((points / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor  # outside of Mutex points are being accesses by render[]
-      text_level.text = "Level: #{level}"
-      text_level.x = Window.width - 5 - text_level.width
-      row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
+      unless paused
+        level = (((points / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor  # outside of Mutex points are being accesses by render[]
+        text_level.text = "Level: #{level}"
+        text_level.x = Window.width - 5 - text_level.width
+        row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
+      end
       prev ||= current - row_time
       if current >= prev + row_time
         prev += row_time
@@ -117,30 +121,27 @@ tap do
       end
 
       unless figure
-        figure = %w{ 070 777 006 666 500 555 440 044 033 330 22  22 1111 }.each_slice(2).to_a.sample
+        figure = %w{ 070 777 006 666 500 555 440 044 033 330 22 22 1111 }.each_slice(2).to_a.sample
         rest = figure.first.size - figure.size
         figure = (
           [?0 * figure.first.size] * (rest / 2) + figure +
           [?0 * figure.first.size] * (rest - rest / 2)
         ).map!{ |st| st.chars.map &:to_i }
         x, y = 3, 0
-        abort "#{text_score.text}\n#{text_level.text}" unless collision.call
-        draw_state.call
+        next draw_state.call if collision.call
+        puts "#{text_level.text}   #{text_score.text}"
+        [pause_rect, pause_text].each &((paused ^= true) ? :add : :remove)
+        points = nil
       end
     end
   end
 end
 
 
-try_left = lambda do
-  x -= 1
+try_move = lambda do |dir|
+  x += dir
   next draw_state.call if collision.call
-  x += 1
-end
-try_right = lambda do
-  x += 1
-  next draw_state.call if collision.call
-  x -= 1
+  x -= dir
 end
 try_up = lambda do
   figure = figure.reverse.transpose
@@ -149,28 +150,28 @@ try_up = lambda do
 end
 
 holding = Hash.new
-pause_rect = Rectangle.new(width: Window.width, height: Window.height, color: [0.5, 0.5, 0.5, 0.75]).tap &:remove
-pause_text = Text.new("press 'P'", font: Font.path("PressStart2P-Regular.ttf")).tap &:remove
 pause_text.x = (Window.width - pause_text.width) / 2
 pause_text.y = (Window.height - pause_text.height) / 2
 on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_left.call  unless paused
-    when "right" ; try_right.call unless paused
-    when "up"    ; try_up.call    unless paused
+    when "left"  ; try_move[-1] unless paused
+    when "right" ; try_move[+1] unless paused
+    when "up"    ; try_up.call  unless paused
     when "r" ; (points = nil ; render.call) unless paused
-    when "p" ; [pause_rect, pause_text].each &((paused ^= true) ? :add : :remove)
+    when "p", "space"
+      render.call unless points
+      [pause_rect, pause_text].each &((paused ^= true) ? :add : :remove)
     end
   end
 end
 on :key_held do |event|
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_left.call  unless 0.5 > Time.now - holding[event.key]
-    when "right" ; try_right.call unless 0.5 > Time.now - holding[event.key]
-    when "up"    ; try_up.call    unless 0.5 > Time.now - holding[event.key]
+    when "left"  ; try_move[-1] unless 0.5 > Time.now - holding[event.key]
+    when "right" ; try_move[+1] unless 0.5 > Time.now - holding[event.key]
+    when "up"    ; try_up.call  unless 0.5 > Time.now - holding[event.key]
     when "down"
       y += 1
       unless collision.call
