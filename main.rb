@@ -13,13 +13,18 @@ end
 field = nil
 
 require "ruby2d"
+margin = 1
+block_size = 30 + 2 * margin
+text_highscore = Text.new("press 'P'", x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf"))
 reset_field = lambda do
   field = Array.new(20){ Array.new 10 }
+  text_highscore.text = "Highscore: #{
+    File.exist?("#{Dir.home}/.rbtris") &&
+      File.read("#{Dir.home}/.rbtris").scan(/^1 .*?(\S+)$/).map(&:first).map(&:to_i).max || "---"
+  }"
 end
 render = lambda do
-  margin = 1
-  inner = 30
-  s = inner + 2 * margin
+  s = block_size
   reset_field.call
   w = s * (2 + field.first.size)
   h = s * (3 + field.size)
@@ -31,7 +36,7 @@ render = lambda do
       [
         Square.new(x: margin + s * (1 + x),
                    y: margin + s * (2 + y),
-                   size: inner),
+                   size: block_size - 2 * margin),
         nil
       ]
     end
@@ -57,27 +62,6 @@ render = lambda do
 end.call
 
 figure = x = y = nil
-mix = lambda do |f|
-  figure.each_with_index do |row, dy|
-    row.each_index do |dx|
-      field[y + dy][x + dx] = (row[dx] if f) unless row[dx].zero?
-    end
-  end
-end
-
-draw_state = lambda do
-  mix.call true
-  render.call
-  mix.call false
-end
-
-semaphore = Mutex.new
-paused = false
-pause_rect = Rectangle.new(width: Window.width, height: Window.height, color: [0.5, 0.5, 0.5, 0.75]).tap &:remove
-pause_text = Text.new("press 'P'", z: 1, font: Font.path("PressStart2P-Regular.ttf")).tap &:remove
-
-
-points = nil
 collision = lambda do   # there is no collision
   figure.each_with_index.all? do |row, dy|
     row.each_with_index.all? do |a, dx|
@@ -89,8 +73,26 @@ collision = lambda do   # there is no collision
     end
   end
 end
-text_score = Text.new points, x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
-text_level = Text.new points, x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
+points = nil
+text_score = Text.new points, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
+text_level = Text.new points, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
+
+mix = lambda do |f|
+  figure.each_with_index do |row, dy|
+    row.each_index do |dx|
+      field[y + dy][x + dx] = (row[dx] if f) unless row[dx].zero?
+    end
+  end
+end
+draw_state = lambda do
+  mix.call true
+  render.call
+  mix.call false
+end
+
+paused = false
+pause_rect = Rectangle.new(width: Window.width, height: Window.height, color: [0.5, 0.5, 0.5, 0.75]).tap &:remove
+pause_text = Text.new("press 'P'", z: 1, font: Font.path("PressStart2P-Regular.ttf")).tap &:remove
 init_figure = lambda do
   figure = %w{ 070 777 006 666 500 555 440 044 033 330 22 22 1111 }.each_slice(2).to_a.sample
   rest = figure.first.size - figure.size
@@ -113,6 +115,8 @@ reset = lambda do
 end
 
 
+semaphore = Mutex.new
+
 prev, row_time = nil, 0
 tap do
   points, first_time = 0, nil
@@ -121,12 +125,14 @@ tap do
   update do
     current = Time.now
     first_time ||= current
-    text_score.text = "Score: #{points}" unless paused
+    unless paused
+      text_score.text = "Score: #{points}"
+      text_score.x = Window.width - 5 - text_score.width
+    end
     semaphore.synchronize do
       unless paused
         level = (((points / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor  # outside of Mutex points are being accesses by render[]
         text_level.text = "Level: #{level}"
-        text_level.x = Window.width - 5 - text_level.width
         row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
       end
       prev ||= current - row_time
@@ -175,13 +181,11 @@ on :key_down do |event|
     when "left"  ; try_move[-1] unless paused
     when "right" ; try_move[+1] unless paused
     when "up"    ; try_up.call  unless paused
-    when "r" ; reset.call unless paused
+    when "r"
+      reset.call unless paused
     when "p", "space"
       [pause_rect, pause_text].each &((paused ^= true) ? :add : :remove)
-      unless points
-        reset.call
-        draw_state.call
-      end
+      reset.call unless points
     end
   end
 end
