@@ -129,7 +129,9 @@ tap do
         ).map!{ |st| st.chars.map &:to_i }
         x, y = 3, 0
         next draw_state.call if collision.call
-        puts "#{text_level.text}   #{text_score.text}"
+        open("#{Dir.home}/.rbtris", "a") do |f|
+          f.puts "1 #{"#{text_level.text}   #{text_score.text}".tap &method(:puts)}"
+        end
         [pause_rect, pause_text].each &((paused ^= true) ? :add : :remove)
         points = nil
       end

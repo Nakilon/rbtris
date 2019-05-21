@@ -18,7 +18,7 @@ bundle exec ruby main.rb
 * [ ] projetion of the piece at the bottom
 * [x] [SRS canonical rotation](https://tetris.fandom.com/wiki/SRS)
 * [ ] SRS wall kicks
-* [ ] scoreboard (maybe at `$HOME/.rbtris`)
+* [x] scoreboard (maybe at `$HOME/.rbtris`)
 * [x] ability to fall down only partially
 * [x] ability to hold UP (just for fun)
 * [x] Mutex stdlib class (no MRuby support)
