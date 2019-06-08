@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 unless File.exist? "PressStart2P-Regular.ttf"
   require "nethttputils"
   require "zip"
