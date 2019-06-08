@@ -8,19 +8,20 @@ unless File.exist? "PressStart2P-Regular.ttf"
   Zip::File.open(tempfile){ |zip| zip.extract "PressStart2P-Regular.ttf", "PressStart2P-Regular.ttf" }
 end
 
+require "ruby2d"
 
 field = nil
-
-require "ruby2d"
 block_size = 30 + 2 * margin = 1
-text_highscore = Text.new("press 'P'", x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf"))
 reset_field = lambda do
-  field = Array.new(20){ Array.new 10 }
-  text_highscore.text = "Highscore: #{
-    File.exist?("#{Dir.home}/.rbtris") &&
-      File.read("#{Dir.home}/.rbtris").scan(/^1 .*?(\S+)$/).map(&:first).map(&:to_i).max || "---"
-  }"
-end
+  text_highscore = Text.new("press 'P'", x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf"))
+  lambda do
+    field = Array.new(20){ Array.new 10 }
+    text_highscore.text = "Highscore: #{
+      File.exist?("#{Dir.home}/.rbtris") &&
+        File.read("#{Dir.home}/.rbtris").scan(/^1 .*?(\S+)$/).map(&:first).map(&:to_i).max || "---"
+    }"
+  end
+end.call
 render = lambda do
   s = block_size
   reset_field.call
@@ -56,7 +57,7 @@ render = lambda do
   end
 end.call
 
-figure = x = y = nil
+figure = nil; x = nil; y = nil  # splitted only for parsing purposes
 mix = lambda do |f|
   figure.each_with_index do |row, dy|
     row.each_index do |dx|
@@ -92,13 +93,12 @@ pause_text = Text.new("press 'P'", z: 1, font: Font.path("PressStart2P-Regular.t
 init_figure = lambda do
   figure = %w{ 070 777 006 666 500 555 440 044 033 330 22 22 1111 }.each_slice(2).to_a.sample
   rest = figure.first.size - figure.size
-  figure = (
+  x, y, figure = 3, 0, (
     [?0 * figure.first.size] * (rest / 2) + figure +
     [?0 * figure.first.size] * (rest - rest / 2)
-  ).map!{ |st| st.chars.map &:to_i }
-  x, y = 3, 0
+  ).map{ |st| st.chars.map &:to_i }
   next draw_state.call if collision.call
-  open("#{Dir.home}/.rbtris", "a") do |f|
+  File.open("#{Dir.home}/.rbtris", "a") do |f|
     f.puts "1 #{"#{text_level.text}   #{text_score.text}".tap &method(:puts)}"
   end
   [pause_rect, pause_text].each &((paused ^= true) ? :add : :remove)
@@ -117,7 +117,7 @@ prev, row_time = nil, 0
 tap do
   first_time = nil
   reset.call
-  update do
+  Window.update do
     current = Time.now
     first_time ||= current
     unless paused
@@ -139,9 +139,10 @@ tap do
       y -= 1
       # puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
       mix.call true
-      a, b = field.partition &:all?
-      field = a.map{ Array.new field.first.size } + b
-      points += [0, 1, 3, 5, 8].fetch a.size
+      field.partition(&:all?).tap do |a, b|
+        field = a.map{ Array.new field.first.size } + b
+        points += [0, 1, 3, 5, 8].fetch a.size
+      end
       render.call
       init_figure.call
     end
@@ -163,7 +164,7 @@ end
 holding = Hash.new
 pause_text.x = (Window.width - pause_text.width) / 2
 pause_text.y = (Window.height - pause_text.height) / 2
-on :key_down do |event|
+Window.on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
     case event.key
@@ -178,7 +179,7 @@ on :key_down do |event|
     end
   end
 end
-on :key_held do |event|
+Window.on :key_held do |event|
   semaphore.synchronize do
     case event.key
     when "left"  ; try_move[-1] unless !figure || 0.5 > Time.now - holding[event.key]
