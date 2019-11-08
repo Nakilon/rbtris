@@ -62,22 +62,21 @@ mix = lambda do |f|     # add or subtract the figure from the field (call it bef
     end
   end
 end
-draw_state = lambda do
-  mix.call true
-  render.call
-  mix.call false
-end
 
-collision = lambda do   # no collision
-  figure.each_with_index.all? do |row, dy|
-    row.each_with_index.all? do |a, dx|
-      a.zero? || (
+collision = lambda do
+  figure.each_with_index.any? do |row, dy|
+    row.each_with_index.any? do |a, dx|
+      not a.zero? ||
         ((0...field.size      ) === y + dy) &&
         ((0...field.first.size) === x + dx) &&
         !field[y + dy][x + dx]
-      )
     end
-  end
+  end or (
+    mix.call true
+    render.call
+    mix.call false
+    false
+  )
 end
 
 score = nil
@@ -94,7 +93,7 @@ init_figure = lambda do
     [?0 * figure.first.size] * (rest / 2) + figure +
     [?0 * figure.first.size] * (rest - rest / 2)
   ).map{ |st| st.chars.map &:to_i }
-  next draw_state.call if collision.call
+  next unless collision.call
   File.open("#{Dir.home}/.rbtris", "a") do |f|
     f.puts "1 #{"#{text_level.text}   #{text_score.text}".tap &method(:puts)}"
   end
@@ -132,7 +131,7 @@ tap do
       prev += row_time
       next unless !paused && figure
       y += 1
-      next draw_state.call if collision.call
+      next unless collision.call
       y -= 1
       # puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
       mix.call true
@@ -149,12 +148,12 @@ end
 
 try_move = lambda do |dir|
   x += dir
-  next draw_state.call if collision.call
+  next unless collision.call
   x -= dir
 end
 try_rotate = lambda do
   figure = figure.reverse.transpose
-  next draw_state.call if collision.call
+  next unless collision.call
   figure = figure.transpose.reverse
 end
 
@@ -184,12 +183,11 @@ Window.on :key_held do |event|
     when "up"    ; try_rotate.call  unless !figure || 0.5 > Time.now - holding[event.key]
     when "down"
       y += 1
-      unless collision.call
+      if collision.call
         prev = Time.now - row_time
         y -= 1
       else
         prev = Time.now
-        draw_state.call
       end
     end
   end unless paused
