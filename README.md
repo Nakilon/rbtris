@@ -1,4 +1,4 @@
-# Tetris game in less than 200 lines of code
+# Tetris game in 200 lines of code
 
 ![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot5.png)
 ![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot6.png)
@@ -27,7 +27,7 @@ For Linux see the [Ruby2d installation notes](http://www.ruby2d.com/learn/linux/
 * [x] ability to fall down only partially
 * [x] ability to hold UP (just for fun)
 * [x] Mutex stdlib class
-* [ ] autoresize to screen
+* [ ] autoresize to screen?
 * [x] option to restart
 * [ ] cheats for testing purposes
 * [x] canonical increase of speed
@@ -35,11 +35,12 @@ For Linux see the [Ruby2d installation notes](http://www.ruby2d.com/learn/linux/
 * [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)
 * [ ] see next piece
 * [x] pause key
-* [ ] window size configuration
+* [ ] window size configuration?
 * [ ] [canonical music](https://en.wikipedia.org/wiki/Tetris#Music)
-* [ ] restore controller support
+* [ ] restore controller support?
 * [ ] color scheme configuration
 * [ ] [boss key](https://en.wikipedia.org/wiki/Boss_key)
+* [ ] compile and publish?
 
 ## Notes
 

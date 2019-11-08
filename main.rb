@@ -11,27 +11,26 @@ require "ruby2d"
 field = nil
 block_size = 30 + 2 * margin = 1
 reset_field = lambda do
-  text_highscore = Text.new("press 'P'", x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf"))
+  text_highscore = Text.new("", x: 5, y: 5, z: 1, font: Font.path("PressStart2P-Regular.ttf"))
   lambda do
     field = Array.new(20){ Array.new 10 }
     text_highscore.text = "Highscore: #{
-      File.exist?("#{Dir.home}/.rbtris") &&
-        File.read("#{Dir.home}/.rbtris").scan(/^1 .*?(\S+)$/).map(&:first).map(&:to_i).max || "---"
+      File.exist?("#{Dir.home}/.rbtris") ?
+        File.read("#{Dir.home}/.rbtris").scan(/^1 .*?(\S+)$/).map(&:first).map(&:to_i).max : "---"
     }"
   end
 end.call
 render = lambda do
-  s = block_size
   reset_field.call
-  w = s * (2 + field.first.size)
-  h = s * (3 + field.size)
+  w = block_size * (2 + field.first.size)
+  h = block_size * (3 + field.size)
   set width: w, height: h, title: "rbTris"
-  Rectangle.new width: w,         height: h,         color: "gray"
-  Rectangle.new width: w - 2 * s, height: h - 3 * s, color: "black", x: s, y: s * 2
+  Rectangle.new width: w,                  height: h,                  color: "gray"
+  Rectangle.new width: w - 2 * block_size, height: h - 3 * block_size, color: "black", x: block_size, y: block_size * 2
   blocks = Array.new(field.size) do |y|
     Array.new(field.first.size) do |x|
-      [ Square.new(x: margin + s * (1 + x),
-                   y: margin + s * (2 + y),
+      [ Square.new(x: margin + block_size * (1 + x),
+                   y: margin + block_size * (2 + y),
                    size: block_size - 2 * margin) ]
     end
   end
@@ -55,8 +54,8 @@ render = lambda do
   end
 end.call
 
-figure = nil; x = nil; y = nil  # splitted only for parsing purposes
-mix = lambda do |f|
+figure = x = y = nil
+mix = lambda do |f|     # add or subtract the figure from the field (call it before rendering)
   figure.each_with_index do |row, dy|
     row.each_index do |dx|
       field[y + dy][x + dx] = (row[dx] if f) unless row[dx].zero?
@@ -69,7 +68,7 @@ draw_state = lambda do
   mix.call false
 end
 
-collision = lambda do   # there is no collision
+collision = lambda do   # no collision
   figure.each_with_index.all? do |row, dy|
     row.each_with_index.all? do |a, dx|
       a.zero? || (
@@ -81,13 +80,13 @@ collision = lambda do   # there is no collision
   end
 end
 
-points = nil
-text_score = Text.new points, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
-text_level = Text.new points, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
+score = nil
+text_score = Text.new score, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
+text_level = Text.new score, x: 5, y: block_size + 5, z: 1, font: Font.path("PressStart2P-Regular.ttf")
 
 paused = false
 pause_rect = Rectangle.new(width: Window.width, height: Window.height, color: [0.5, 0.5, 0.5, 0.75]).tap &:remove
-pause_text = Text.new("press 'P'", z: 1, font: Font.path("PressStart2P-Regular.ttf")).tap &:remove
+pause_text = Text.new("press 'Space'", z: 1, font: Font.path("PressStart2P-Regular.ttf")).tap &:remove
 init_figure = lambda do
   figure = %w{ 070 777 006 666 500 555 440 044 033 330 22 22 1111 }.each_slice(2).to_a.sample
   rest = figure.first.size - figure.size
@@ -100,10 +99,10 @@ init_figure = lambda do
     f.puts "1 #{"#{text_level.text}   #{text_score.text}".tap &method(:puts)}"
   end
   [pause_rect, pause_text].each &((paused ^= true) ? :add : :remove)
-  points = nil
+  score = nil
 end
 reset = lambda do
-  points, figure = 0, nil
+  score, figure = 0, nil
   reset_field.call
   init_figure.call
 end
@@ -119,12 +118,12 @@ tap do
     current = Time.now
     first_time ||= current
     unless paused
-      text_score.text = "Score: #{points}"
+      text_score.text = "Score: #{score}"
       text_score.x = Window.width - 5 - text_score.width
     end
     semaphore.synchronize do
       unless paused
-        level = (((points / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor  # outside of Mutex points are being accesses by render[]
+        level = (((score / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor  # outside of Mutex score is being accesses by render[]
         text_level.text = "Level: #{level}"
         row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
       end
@@ -139,7 +138,7 @@ tap do
       mix.call true
       field.partition(&:all?).tap do |a, b|
         field = a.map{ Array.new field.first.size } + b
-        points += [0, 1, 3, 5, 8].fetch a.size
+        score += [0, 1, 3, 5, 8].fetch a.size
       end
       render.call
       init_figure.call
@@ -153,7 +152,7 @@ try_move = lambda do |dir|
   next draw_state.call if collision.call
   x -= dir
 end
-try_up = lambda do
+try_rotate = lambda do
   figure = figure.reverse.transpose
   next draw_state.call if collision.call
   figure = figure.transpose.reverse
@@ -166,23 +165,23 @@ Window.on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_move[-1] unless !figure || paused
-    when "right" ; try_move[+1] unless !figure || paused
-    when "up"    ; try_up.call  unless !figure || paused
+    when "left"  ; try_move.call -1 unless !figure || paused
+    when "right" ; try_move.call +1 unless !figure || paused
+    when "up"    ; try_rotate.call  unless !figure || paused
     when "r"
       reset.call unless paused
     when "p", "space"
       [pause_rect, pause_text].each &((paused ^= true) ? :add : :remove)
-      reset.call unless points
+      reset.call unless score
     end
   end
 end
 Window.on :key_held do |event|
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_move[-1] unless !figure || 0.5 > Time.now - holding[event.key]
-    when "right" ; try_move[+1] unless !figure || 0.5 > Time.now - holding[event.key]
-    when "up"    ; try_up.call  unless !figure || 0.5 > Time.now - holding[event.key]
+    when "left"  ; try_move.call -1 unless !figure || 0.5 > Time.now - holding[event.key]
+    when "right" ; try_move.call +1 unless !figure || 0.5 > Time.now - holding[event.key]
+    when "up"    ; try_rotate.call  unless !figure || 0.5 > Time.now - holding[event.key]
     when "down"
       y += 1
       unless collision.call
