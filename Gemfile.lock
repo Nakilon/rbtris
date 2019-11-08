@@ -8,16 +8,14 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    nethttputils (0.3.2.6)
-    rubyzip (1.2.2)
+    rubyzip (2.0.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  nethttputils
   ruby2d!
   rubyzip
 
 BUNDLED WITH
-   1.17.1
+   1.17.2
