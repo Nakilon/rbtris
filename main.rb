@@ -111,11 +111,9 @@ semaphore = Mutex.new
 
 prev, row_time = nil, 0
 tap do
-  first_time = nil
   reset.call
   Window.update do
     current = Time.now
-    first_time ||= current
     unless paused
       text_score.text = "Score: #{score}"
       text_score.x = Window.width - 5 - text_score.width
@@ -129,7 +127,7 @@ tap do
       prev ||= current - row_time
       next unless current >= prev + row_time
       prev += row_time
-      next unless !paused && figure
+      next unless figure && !paused
       y += 1
       next unless collision.call
       y -= 1
@@ -164,9 +162,9 @@ Window.on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_move.call -1 unless !figure || paused
-    when "right" ; try_move.call +1 unless !figure || paused
-    when "up"    ; try_rotate.call  unless !figure || paused
+    when "left"  ; try_move.call -1 if figure && !paused
+    when "right" ; try_move.call +1 if figure && !paused
+    when "up"    ; try_rotate.call  if figure && !paused
     when "r"
       reset.call unless paused
     when "p", "space"
@@ -178,16 +176,16 @@ end
 Window.on :key_held do |event|
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_move.call -1 unless !figure || 0.5 > Time.now - holding[event.key]
-    when "right" ; try_move.call +1 unless !figure || 0.5 > Time.now - holding[event.key]
-    when "up"    ; try_rotate.call  unless !figure || 0.5 > Time.now - holding[event.key]
+    when "left"  ; try_move.call -1 if figure && 0.5 < Time.now - holding[event.key]
+    when "right" ; try_move.call +1 if figure && 0.5 < Time.now - holding[event.key]
+    when "up"    ; try_rotate.call  if figure && 0.5 < Time.now - holding[event.key]
     when "down"
       y += 1
-      if collision.call
-        prev = Time.now - row_time
+      prev = if collision.call
         y -= 1
+        Time.now - row_time
       else
-        prev = Time.now
+        Time.now
       end
     end
   end unless paused

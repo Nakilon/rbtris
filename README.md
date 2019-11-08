@@ -1,4 +1,4 @@
-# Tetris game in 200 lines of code
+# Tetris game in less than 200 lines of code
 
 ![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot5.png)
 ![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot6.png)
@@ -16,7 +16,7 @@ bundle install
 bundle exec ruby main.rb
 ```
 
-For Linux see the [Ruby2d installation notes](http://www.ruby2d.com/learn/linux/#install-packages).
+For Linux you might need to read the [Ruby2d installation notes](http://www.ruby2d.com/learn/linux/#install-packages).
 
 ## TODO
 
