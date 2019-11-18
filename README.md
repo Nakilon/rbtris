@@ -1,7 +1,6 @@
 # Tetris game in less than 200 lines of code
 
-![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot5.png)
-![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot6.png)
+![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot8.png)
 
 ## Controls
 
