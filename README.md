@@ -1,6 +1,6 @@
-# Tetris game in less than 200 lines of code
+# Tetris game in less than 250 lines of code
 
-![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot8.png)
+![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot9.png)
 
 ## Controls
 
@@ -19,34 +19,38 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 
 ## TODO
 
-* [ ] projetion of the piece on the bottom
 * [x] [SRS canonical rotation](https://tetris.fandom.com/wiki/SRS)
-* [ ] SRS wall kicks
-* [x] scoreboard stored at `$HOME/.rbtris`
+* [x] scoreboard stored at `~/.rbtris`
 * [x] ability to fall down only partially
 * [x] ability to hold UP (just for fun)
-* [x] Mutex stdlib class
-* [ ] autoresize to screen?
+* [x] using Mutex
 * [x] option to restart
-* [ ] cheats for testing purposes
 * [x] canonical increase of speed
 * [x] holding LEFT and RIGHT
-* [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)
-* [ ] see next piece
 * [x] pause key
+
+(all above is included in the "200 lines of code" git branch)
+
+* [*] conflict-free `~/.rbtris` file for different branches of the game
+* [ ] projetion of the piece on the bottom
+* [ ] SRS wall kicks
+* [ ] autoresize to screen?
+* [ ] cheats for testing purposes
+* [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)
+* [x] see next piece
 * [ ] window size configuration?
 * [ ] [canonical music](https://en.wikipedia.org/wiki/Tetris#Music)
 * [ ] restore controller support?
 * [ ] color scheme configuration
 * [ ] [boss key](https://en.wikipedia.org/wiki/Boss_key)
 * [ ] compile and publish?
+* [ ] demo recording/playback?
+* [ ] save/load game progress
 
 ## Notes
 
 By default ruby2d looks for a font only in one system directory -- this is why ruby2d dependency here was [forked and patched](https://github.com/Nakilon/ruby2d/commit/a80fa4b47e713e22995a7c2698fd055f5464b23b) a bit to support sourcing from the working directory (and `$HOME/Library/Fonts`).
 
-It can't be compiled to binary right now because of using a Mutex class that is not in MRuby.
-
-It's hard to continue fitting it into 200 lines but I want to add more features -- maybe I'll make a "300-LOC" branch.
+It can't be compiled to binary right now because of using a MRI stdlib Mutex that is not in MRuby.
 
 Cool font is [Press Start 2P from Google Fonts](https://fonts.google.com/specimen/Press+Start+2P).
