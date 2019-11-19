@@ -47,6 +47,6 @@ By default ruby2d looks for a font only in one system directory -- this is why r
 
 It can't be compiled to binary right now because of using a Mutex class that is not in MRuby.
 
-It's hard to continue fitting it into 200 lines but I want to add more features -- maybe I'll make a "300-LOC" branch.
+It's hard to continue fitting it into 200 lines but I want to add more features -- ~~maybe I'll make a "300-LOC" branch~~ there is now 250-loc branch that has the "next piece" displayed.
 
 Cool font is [Press Start 2P from Google Fonts](https://fonts.google.com/specimen/Press+Start+2P).
