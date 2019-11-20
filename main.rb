@@ -20,6 +20,14 @@ set width: border * 2 + block_size * (field.first.size + 6), height: block_size 
 Rectangle.new width: Window.width,    height: Window.height,           color: "silver", z: -1
 Rectangle.new width: block_size * 5,  height: block_size * 3,          color: "black", z: -1, x: x2, y: border
 Rectangle.new width: block_size * 10, height: block_size * field.size, color: "black", z: -1, x: border, y: border
+figure = x = y = nil
+mix = lambda do |f|
+  figure.each_with_index do |row, dy|
+    row.each_index do |dx|
+      field[y + dy][x + dx] = (row[dx] if f) if row[dx]
+    end
+  end
+end
 render = lambda do
   blocks = Array.new(field.size) do |y|
     Array.new(field.first.size) do |x|
@@ -29,6 +37,7 @@ render = lambda do
     end
   end
   lambda do
+    mix.call true
     blocks.each_with_index do |row, i|
       row.each_with_index do |(block, drawn), j|
         if field[i][j]
@@ -45,17 +54,9 @@ render = lambda do
         end
       end
     end
+    mix.call false
   end
 end.call
-
-figure = x = y = nil
-mix = lambda do |f|     # add or subtract the figure from the field (call it before rendering)
-  figure.each_with_index do |row, dy|
-    row.each_index do |dx|
-      field[y + dy][x + dx] = (row[dx] if f) if row[dx]
-    end
-  end
-end
 
 collision = lambda do
   figure.each_with_index.any? do |row, dy|
@@ -66,9 +67,7 @@ collision = lambda do
         !field[y + dy][x + dx]
     end
   end or (
-    mix.call true
     render.call
-    mix.call false
     false
   )
 end
@@ -138,7 +137,7 @@ Window.update do
   text_score.text = score unless paused
   semaphore.synchronize do
     unless paused
-      text_level.text = level = (((score / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor  # outside of Mutex score is being accesses by render[]
+      text_level.text = level = (((score / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor
       row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
     end
     prev ||= current - row_time
@@ -153,8 +152,8 @@ Window.update do
       field = a.map{ Array.new field.first.size } + b
       score += [0, 1, 3, 5, 8].fetch a.size
     end
-    render.call
     init_figure.call
+    render.call
   end
 end
 
