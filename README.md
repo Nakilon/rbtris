@@ -31,7 +31,7 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 
 (all above is included in the "200 lines of code" git branch)
 
-* [*] conflict-free `~/.rbtris` file for different branches of the game
+* [x] conflict-free `~/.rbtris` file for different branches of the game
 * [ ] projetion of the piece on the bottom
 * [ ] SRS wall kicks
 * [ ] autoresize to screen?
@@ -46,6 +46,8 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 * [ ] compile and publish?
 * [ ] demo recording/playback?
 * [ ] save/load game progress
+* [ ] Space to drop
+* [x] bundle the font
 
 ## Notes
 
@@ -53,4 +55,4 @@ By default ruby2d looks for a font only in one system directory -- this is why r
 
 It can't be compiled to binary right now because of using a MRI stdlib Mutex that is not in MRuby.
 
-Cool font is [Press Start 2P from Google Fonts](https://fonts.google.com/specimen/Press+Start+2P).
+Cool font is [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) -- licensed under the [Open Font License](LICENSE.OFL-1.1.txt).

@@ -8,14 +8,12 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    rubyzip (2.0.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   ruby2d!
-  rubyzip
 
 BUNDLED WITH
    1.17.2
