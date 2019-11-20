@@ -132,32 +132,29 @@ end
 semaphore = Mutex.new
 
 prev, row_time = nil, 0
-tap do
-  reset.call
-  Window.update do
-    current = Time.now
-    text_score.text = score unless paused
-    semaphore.synchronize do
-      unless paused
-        text_level.text = level = (((score / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor  # outside of Mutex score is being accesses by render[]
-        row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
-      end
-      prev ||= current - row_time
-      next unless current >= prev + row_time
-      prev += row_time
-      next unless figure && !paused
-      y += 1
-      next unless collision.call
-      y -= 1
-      # puts "FPS: #{(Window.frames.round - 1) / (current - first_time)}" if Window.frames.round > 1
-      mix.call true
-      field.partition(&:all?).tap do |a, b|
-        field = a.map{ Array.new field.first.size } + b
-        score += [0, 1, 3, 5, 8].fetch a.size
-      end
-      render.call
-      init_figure.call
+reset.call
+Window.update do
+  current = Time.now
+  text_score.text = score unless paused
+  semaphore.synchronize do
+    unless paused
+      text_level.text = level = (((score / 5 + 0.125) * 2) ** 0.5 - 0.5 + 1e-6).floor  # outside of Mutex score is being accesses by render[]
+      row_time = (0.8 - (level - 1) * 0.007) ** (level - 1)
     end
+    prev ||= current - row_time
+    next unless current >= prev + row_time
+    prev += row_time
+    next unless figure && !paused
+    y += 1
+    next unless collision.call
+    y -= 1
+    mix.call true
+    field.partition(&:all?).tap do |a, b|
+      field = a.map{ Array.new field.first.size } + b
+      score += [0, 1, 3, 5, 8].fetch a.size
+    end
+    render.call
+    init_figure.call
   end
 end
 
