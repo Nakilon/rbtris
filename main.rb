@@ -52,7 +52,7 @@ figure = x = y = nil
 mix = lambda do |f|     # add or subtract the figure from the field (call it before rendering)
   figure.each_with_index do |row, dy|
     row.each_index do |dx|
-      field[y + dy][x + dx] = (row[dx] if f) unless row[dx].zero?
+      field[y + dy][x + dx] = (row[dx] if f) if row[dx]
     end
   end
 end
@@ -60,7 +60,7 @@ end
 collision = lambda do
   figure.each_with_index.any? do |row, dy|
     row.each_with_index.any? do |a, dx|
-      not a.zero? ||
+      not !a ||
         ((0...field.size      ) === y + dy) &&
         ((0...field.first.size) === x + dx) &&
         !field[y + dy][x + dx]
@@ -96,18 +96,18 @@ init_figure = lambda do
     (
       [?0 * t.first.size] * (rest / 2) + t +
       [?0 * t.first.size] * (rest - rest / 2)
-    ).map{ |st| st.chars.map &:to_i }
+    ).map{ |st| st.chars.map{ |c| c.to_i unless c == ?0 } }
   end
   next_figure = make_figure.call
   blocks = 4.times.map{ 4.times.map{ Square.new z: -1, size: block_size - 2 * margin } }
   lambda do
     x, y, figure, next_figure = 3, 0, next_figure, make_figure.call
-    temp_figure = next_figure.reject{ |_| _.sum.zero? }   # this all will become simplier probably if we start use only 4x4 array for figure
-    dy = border + margin + block_size *  (1.5 - temp_figure.          count{ |_| _.sum > 0 } / 2.0)
-    dx = border + margin + block_size * (13.5 - temp_figure.transpose.count{ |_| _.sum > 0 } / 2.0)
+    temp_figure = next_figure.select &:any?   # this all will become simplier probably if we start use only 4x4 array for figure
+    dy = border + margin + block_size *  (1.5 - temp_figure.          count(&:any?) / 2.0)
+    dx = border + margin + block_size * (13.5 - temp_figure.transpose.count(&:any?) / 2.0)
     blocks.each_with_index do |row, i|
       row.each_with_index do |block, j|
-        next block.remove unless temp_figure[i] && temp_figure[i][j] && !temp_figure[i][j].zero?
+        next block.remove unless temp_figure[i] && temp_figure[i][j]
         block.color = %w{ aqua yellow green red blue orange purple }[temp_figure[i][j] - 1]
         block.y = dy + block_size * i
         block.x = dx + block_size * j
