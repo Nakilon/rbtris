@@ -129,6 +129,7 @@ end
 
 
 semaphore = Mutex.new
+holding = Hash.new
 
 prev, row_time = nil, 0
 reset.call
@@ -147,6 +148,7 @@ Window.update do
     y += 1
     next unless collision.call
     y -= 1
+    holding["down"] = Time.now + 0.25
     mix.call true
     field.partition(&:all?).tap do |a, b|
       field = a.map{ Array.new field.first.size } + b
@@ -169,7 +171,6 @@ try_rotate = lambda do
   figure = figure.transpose.reverse
 end
 
-holding = Hash.new
 Window.on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
@@ -191,7 +192,7 @@ Window.on :key_held do |event|
     when "left"  ; try_move.call -1 if figure && 0.5 < Time.now - holding[event.key]
     when "right" ; try_move.call +1 if figure && 0.5 < Time.now - holding[event.key]
     when "up"    ; try_rotate.call  if figure && 0.5 < Time.now - holding[event.key]
-    when "down"
+    when "down"  ;         next unless           0   < Time.now - holding[event.key]
       y += 1
       prev = if collision.call
         y -= 1
