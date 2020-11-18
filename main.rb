@@ -1,7 +1,7 @@
 require "ruby2d"
 
 text_new = lambda do |text = "", **args|
-  Text.new text, font: Font.path("PressStart2P-Regular.ttf"), **args
+  Text.new text, font: "#{__dir__}/PressStart2P-Regular.ttf", **args
 end
 
 block_size = 30 + 2 * margin = 1

@@ -51,8 +51,6 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 
 ## Notes
 
-By default ruby2d looks for a font only in one system directory -- this is why ruby2d dependency here was [forked and patched](https://github.com/Nakilon/ruby2d/commit/a80fa4b47e713e22995a7c2698fd055f5464b23b) a bit to support sourcing from the working directory (and `$HOME/Library/Fonts`).
-
 It can't be compiled to binary right now because of using a MRI stdlib Mutex that is not in MRuby.
 
 Cool font is [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) -- licensed under the [Open Font License](LICENSE.OFL-1.1.txt).

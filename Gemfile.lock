@@ -1,19 +1,13 @@
-GIT
-  remote: https://github.com/nakilon/ruby2d
-  revision: a80fa4b47e713e22995a7c2698fd055f5464b23b
-  submodules: true
-  specs:
-    ruby2d (0.9.2)
-
 GEM
   remote: https://rubygems.org/
   specs:
+    ruby2d (0.9.4)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  ruby2d!
+  ruby2d
 
 BUNDLED WITH
    2.1.4
