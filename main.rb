@@ -81,7 +81,7 @@ score = nil
 paused = false
 toggle_pause = lambda do
   pause_rect = Rectangle.new(width: Window.width, height: Window.height, color: [0.5, 0.5, 0.5, 0.75], z: -1).tap &:remove
-  pause_text = text_new.call("press 'Space'").tap &:remove
+  pause_text = text_new.call("press 'Escape'").tap &:remove
   pause_text.x = (Window.width - pause_text.width) / 2
   pause_text.y = (Window.height - pause_text.height) / 2
   lambda do
@@ -148,7 +148,7 @@ Window.update do
     y += 1
     next unless collision.call
     y -= 1
-    holding["down"] = Time.now + 0.25
+    holding["down"] = holding["space"] = Time.now + 0.25
     mix.call true
     field.partition(&:all?).tap do |a, b|
       field = a.map{ Array.new field.first.size } + b
@@ -180,19 +180,21 @@ Window.on :key_down do |event|
     when "up"    ; try_rotate.call  if figure && !paused
     when "r"
       reset.call unless paused
-    when "p", "space"
+    when "p", "escape"
       toggle_pause.call
       reset.call unless score
+    when "q"
+      exit
     end
   end
 end
 Window.on :key_held do |event|
   semaphore.synchronize do
     case event.key
-    when "left"  ; try_move.call -1 if figure && 0.5 < Time.now - holding[event.key]
-    when "right" ; try_move.call +1 if figure && 0.5 < Time.now - holding[event.key]
-    when "up"    ; try_rotate.call  if figure && 0.5 < Time.now - holding[event.key]
-    when "down"  ;         next unless           0   < Time.now - holding[event.key]
+    when "left"          ; try_move.call -1 if figure && 0.5 < Time.now - holding[event.key]
+    when "right"         ; try_move.call +1 if figure && 0.5 < Time.now - holding[event.key]
+    when "up"            ; try_rotate.call  if figure && 0.5 < Time.now - holding[event.key]
+    when "down", "space" ;         next unless           0   < Time.now - holding[event.key]
       y += 1
       prev = if collision.call
         y -= 1
