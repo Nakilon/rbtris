@@ -4,9 +4,11 @@
 
 ## Controls
 
-**ARROWS**  
+**Left**, **Right** to move  
+**Up** to rotate  
+**Down** or **Space** to drop  
 **R** to restart  
-**P** or **Space** to pause
+**P** or **Escape** to pause
 
 ## Installation
 
@@ -46,7 +48,7 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 * [ ] compile and publish?
 * [ ] demo recording/playback?
 * [ ] save/load game progress
-* [ ] Space to drop
+* [x] Space to drop
 * [x] bundle the font
 
 ## Notes

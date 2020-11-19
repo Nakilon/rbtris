@@ -21,13 +21,25 @@ Rectangle.new width: Window.width,    height: Window.height,           color: "s
 Rectangle.new width: block_size * 5,  height: block_size * 3,          color: "black", z: -1, x: x2, y: border
 Rectangle.new width: block_size * 10, height: block_size * field.size, color: "black", z: -1, x: border, y: border
 figure = x = y = nil
-mix = lambda do |f|
-  figure.each_with_index do |row, dy|
-    row.each_index do |dx|
-      field[y + dy][x + dx] = (row[dx] if f) if row[dx]
+collision = lambda do |y_ = nil|
+  figure.each_with_index.any? do |row, dy|
+    row.each_with_index.any? do |a, dx|
+      next unless a
+      !((0...field.size      ) === (y_ || y) + dy) ||
+      !((0...field.first.size) === x + dx) ||
+      field[(y_ || y) + dy][x + dx]
     end
   end
 end
+color = ->(i, a = 1){ [*[[0, 1, 1], [0.2, 0.2, 1], [1, 0.7, 0], [1, 0.9, 0.2], [0, 0.9, 0], [0.7, 0, 1], [1, 0.2, 0.2]][i - 1], a] }
+mix = lambda do |f, y_ = nil, c = nil|
+  figure.each_with_index do |row, dy|
+    row.each_index do |dx|
+      field[(y_ || y) + dy][x + dx] = (color[row[dx], *c] if f) if row[dx]
+    end
+  end
+end
+
 render = lambda do
   blocks = Array.new(field.size) do |y|
     Array.new(field.first.size) do |x|
@@ -37,11 +49,15 @@ render = lambda do
     end
   end
   lambda do
+    yy = y
+    yy += 1 until collision.call yy
+    yy -= 1
+    mix.call true, yy, 0.4
     mix.call true
     blocks.each_with_index do |row, i|
       row.each_with_index do |(block, drawn), j|
         if field[i][j]
-          block.color = %w{ aqua yellow green red blue orange purple }[field[i][j] - 1]
+          block.color = field[i][j]
           unless drawn == true
             block.add
             row[j][1] = true
@@ -54,22 +70,13 @@ render = lambda do
         end
       end
     end
+    mix.call false, yy
     mix.call false
   end
 end.call
 
-collision = lambda do
-  figure.each_with_index.any? do |row, dy|
-    row.each_with_index.any? do |a, dx|
-      not !a ||
-        ((0...field.size      ) === y + dy) &&
-        ((0...field.first.size) === x + dx) &&
-        !field[y + dy][x + dx]
-    end
-  end or (
-    render.call
-    false
-  )
+collide_or_render = lambda do
+  collision.call or (render.call; false)
 end
 
              text_new.call"SCORE:", color: "black", x: x2,              y: border + block_size * 6
@@ -90,7 +97,7 @@ toggle_pause = lambda do
 end.call
 init_figure = lambda do
   make_figure = lambda do
-    t = %w{ 070 777 006 666 500 555 440 044 033 330 22 22 1111 }.each_slice(2).to_a.sample
+    t = %w{ 770 077 060 666 055 550 44 44 003 333 200 222 1111 }.each_slice(2).to_a.sample
     rest = t.first.size - t.size
     (
       [?0 * t.first.size] * (rest / 2) + t +
@@ -107,13 +114,13 @@ init_figure = lambda do
     blocks.each_with_index do |row, i|
       row.each_with_index do |block, j|
         next block.remove unless temp_figure[i] && temp_figure[i][j]
-        block.color = %w{ aqua yellow green red blue orange purple }[temp_figure[i][j] - 1]
+        block.color = color[temp_figure[i][j]]
         block.y = dy + block_size * i
         block.x = dx + block_size * j
         block.add
       end
     end
-    next unless collision.call
+    next unless collide_or_render.call
     File.open("#{Dir.home}/.rbtris", "a") do |f|
       f.puts "2 #{"#{text_level.text}   #{text_score.text}".tap &method(:puts)}"
     end
@@ -146,7 +153,7 @@ Window.update do
     prev += row_time
     next unless figure && !paused
     y += 1
-    next unless collision.call
+    next unless collide_or_render.call
     y -= 1
     holding["down"] = holding["space"] = Time.now + 0.25
     mix.call true
@@ -162,12 +169,12 @@ end
 
 try_move = lambda do |dir|
   x += dir
-  next unless collision.call
+  next unless collide_or_render.call
   x -= dir
 end
 try_rotate = lambda do
   figure = figure.reverse.transpose
-  next unless collision.call
+  next unless collide_or_render.call
   figure = figure.transpose.reverse
 end
 
@@ -196,7 +203,7 @@ Window.on :key_held do |event|
     when "up"            ; try_rotate.call  if figure && 0.5 < Time.now - holding[event.key]
     when "down", "space" ;         next unless           0   < Time.now - holding[event.key]
       y += 1
-      prev = if collision.call
+      prev = if collide_or_render.call
         y -= 1
         Time.now - row_time
       else
