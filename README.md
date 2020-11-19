@@ -1,6 +1,6 @@
 # Tetris game in less than 250 lines of code
 
-![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot9.png)
+![](https://storage.googleapis.com/rbtris.github.nakilon.pro/screenshot10.png)
 
 ## Controls
 
@@ -34,7 +34,7 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 (all above is included in the "200 lines of code" git branch)
 
 * [x] conflict-free `~/.rbtris` file for different branches of the game
-* [ ] projetion of the piece on the bottom
+* [x] projetion of the piece on the bottom
 * [ ] SRS wall kicks
 * [ ] autoresize to screen?
 * [ ] cheats for testing purposes

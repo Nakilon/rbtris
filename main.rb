@@ -51,8 +51,7 @@ render = lambda do
   lambda do
     yy = y
     yy += 1 until collision.call yy
-    yy -= 1
-    mix.call true, yy, 0.4
+    mix.call true, yy - 1, (yy - y) / 40.0
     mix.call true
     blocks.each_with_index do |row, i|
       row.each_with_index do |(block, drawn), j|
@@ -70,7 +69,7 @@ render = lambda do
         end
       end
     end
-    mix.call false, yy
+    mix.call false, yy - 1
     mix.call false
   end
 end.call
