@@ -34,12 +34,14 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 (all above is included in the "200 lines of code" git branch)
 
 * [x] conflict-free `~/.rbtris` file for different branches of the game
+* [x] SPACE to drop
+* [x] bundle the font
+* [x] see next piece
 * [x] projetion of the piece on the bottom
-* [ ] SRS wall kicks
+* [x] wall kicks
 * [ ] autoresize to screen?
 * [ ] cheats for testing purposes
-* [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)
-* [x] see next piece
+* [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)?
 * [ ] window size configuration?
 * [ ] [canonical music](https://en.wikipedia.org/wiki/Tetris#Music)
 * [ ] restore controller support?
@@ -48,8 +50,7 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 * [ ] compile and publish?
 * [ ] demo recording/playback?
 * [ ] save/load game progress
-* [x] Space to drop
-* [x] bundle the font
+* [ ] +/- to resize window (requires on ruby2d/ruby2d#168)
 
 ## Notes
 

@@ -174,6 +174,8 @@ end
 try_rotate = lambda do
   figure = figure.reverse.transpose
   next unless collide_or_render.call
+  next unless try_move.call -1
+  next unless try_move.call +1
   figure = figure.transpose.reverse
 end
 
