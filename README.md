@@ -9,6 +9,7 @@
 **Down** or **Space** to drop  
 **R** to restart  
 **P** or **Escape** to pause
+**M** to pause/resume music
 
 ## Installation
 
@@ -31,7 +32,7 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 * [x] holding LEFT and RIGHT
 * [x] pause key
 
-(all above is included in the "200 lines of code" git branch)
+(all above is included in the "200 lines of code" `loc-200` git branch)
 
 * [x] conflict-free `~/.rbtris` file for different branches of the game
 * [x] SPACE to drop
@@ -39,11 +40,11 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 * [x] see next piece
 * [x] projetion of the piece on the bottom
 * [x] wall kicks
+* [x] [canonical music](https://en.wikipedia.org/wiki/Tetris#Music)
 * [ ] autoresize to screen?
 * [ ] cheats for testing purposes
 * [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)?
 * [ ] window size configuration?
-* [ ] [canonical music](https://en.wikipedia.org/wiki/Tetris#Music)
 * [ ] restore controller support?
 * [ ] color scheme configuration
 * [ ] [boss key](https://en.wikipedia.org/wiki/Boss_key)

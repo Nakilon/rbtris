@@ -179,10 +179,17 @@ try_rotate = lambda do
   figure = figure.transpose.reverse
 end
 
+music = muted = nil
+Thread.new do
+  require "open-uri"
+  File.binwrite "#{__dir__}/music.ogg", open("https://storage.googleapis.com/rbtris.github.nakilon.pro/40.ogg", &:read) unless File.exist? "#{__dir__}/music.ogg"
+  music = Music.new("#{__dir__}/music.ogg").tap{ |m| m.play; m.loop = true; m.volume = 50 }
+end
 Window.on :key_down do |event|
   holding[event.key] = Time.now
   semaphore.synchronize do
     case event.key
+    when "q" ; exit
     when "left"  ; try_move.call -1 if figure && !paused
     when "right" ; try_move.call +1 if figure && !paused
     when "up"    ; try_rotate.call  if figure && !paused
@@ -191,8 +198,8 @@ Window.on :key_down do |event|
     when "p", "escape"
       toggle_pause.call
       reset.call unless score
-    when "q"
-      exit
+    when "m"
+      (muted ^= true) ? music.pause : music.resume if music
     end
   end
 end
