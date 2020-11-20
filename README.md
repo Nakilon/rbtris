@@ -8,8 +8,8 @@
 **Up** to rotate  
 **Down** or **Space** to drop  
 **R** to restart  
-**P** or **Escape** to pause
-**M** to pause/resume music
+**P** or **Escape** to pause  
+**M** to pause/resume music  
 **G** toggle grayscale
 
 ## Installation
@@ -42,7 +42,7 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 * [x] projetion of the piece on the bottom
 * [x] wall kicks
 * [x] optional [music](https://en.wikipedia.org/wiki/Tetris#Music)
-* [x] optional grey color scheme
+* [x] optional grayscale color scheme
 * [ ] autoresize to screen?
 * [ ] cheats for testing purposes
 * [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)?
@@ -52,7 +52,7 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 * [ ] compile and publish?
 * [ ] demo recording/playback?
 * [ ] save/load game progress
-* [ ] +/- to resize window (requires on ruby2d/ruby2d#168)
+* [ ] +/- to resize window (requires https://github.com/ruby2d/ruby2d/issues/168)
 
 ## Notes
 
