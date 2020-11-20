@@ -15,6 +15,8 @@
 ## Installation
 
 ```
+git clone https://github.com/Nakilon/rbtris.git --branch loc-250
+cd rbtris
 bundle install
 bundle exec ruby main.rb
 ```
