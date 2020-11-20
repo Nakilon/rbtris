@@ -10,6 +10,7 @@
 **R** to restart  
 **P** or **Escape** to pause
 **M** to pause/resume music
+**G** toggle grayscale
 
 ## Installation
 
@@ -40,13 +41,13 @@ For Linux you might need to read the [Ruby2d installation notes](http://www.ruby
 * [x] see next piece
 * [x] projetion of the piece on the bottom
 * [x] wall kicks
-* [x] [canonical music](https://en.wikipedia.org/wiki/Tetris#Music)
+* [x] optional [music](https://en.wikipedia.org/wiki/Tetris#Music)
+* [x] optional grey color scheme
 * [ ] autoresize to screen?
 * [ ] cheats for testing purposes
 * [ ] [canonical scoring](https://tetris.fandom.com/wiki/Scoring)?
 * [ ] window size configuration?
 * [ ] restore controller support?
-* [ ] color scheme configuration
 * [ ] [boss key](https://en.wikipedia.org/wiki/Boss_key)
 * [ ] compile and publish?
 * [ ] demo recording/playback?

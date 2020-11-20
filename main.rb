@@ -31,7 +31,8 @@ collision = lambda do |y_ = nil|
     end
   end
 end
-color = ->(i, a = 1){ [*[[0, 1, 1], [0.2, 0.2, 1], [1, 0.7, 0], [1, 0.9, 0.2], [0, 0.9, 0], [0.7, 0, 1], [1, 0.2, 0.2]][i - 1], a] }
+palettes = [[[0.7, 0.7, 0.7]] * 7, [[0, 1, 1], [0.2, 0.2, 1], [1, 0.7, 0], [1, 0.9, 0.2], [0, 0.9, 0], [0.7, 0, 1], [1, 0.2, 0.2]]]
+color = ->(i, a = 1){ [*palettes.last[i - 1], a] }
 mix = lambda do |f, y_ = nil, c = nil|
   figure.each_with_index do |row, dy|
     row.each_index do |dx|
@@ -200,6 +201,9 @@ Window.on :key_down do |event|
       reset.call unless score
     when "m"
       (muted ^= true) ? music.pause : music.resume if music
+    when "g"
+      palettes.rotate!
+      render.call
     end
   end
 end
